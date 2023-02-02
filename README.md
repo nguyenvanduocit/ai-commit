@@ -12,6 +12,8 @@ Note: Using AI-Commit will result in charges from OpenAI for API usage, so be su
 
 ## Install
 
+There are two ways to install AI-Commit:
+
 ### Use go
 
 ```bash
@@ -37,6 +39,10 @@ It's recommended to make multiple small commits, commit more often.
 ## Todo
 
 - [ ] Auto split changes in to multiple commits.
+
+## Known issues
+
+- [ ] the type of commit is not 100% correct.
 
 ## License
 
