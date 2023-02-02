@@ -31,8 +31,8 @@ You can download prebuilt binaries for Linux, macOS, and Windows from the [relea
 1. Stage the changes you want to commit in Git.
 2. Run `ai-commit` command.
 3. The tool will generate a commit message and print it to the console.
-4. If you are satisfied with the generated message, press `y`; if not press `n` to generate a new message; press `a` to make adjustment.
-5. Commit type is optional.
+4. If you are satisfied with the generated message, press `y`; if not press `n` to make adjustment.
+5. Finally, select the type of commit.
 
 ## Tip
 
