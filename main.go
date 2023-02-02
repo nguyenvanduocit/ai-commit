@@ -90,7 +90,8 @@ func complete(ctx context.Context, client gpt3.Client, prompt string) (string, e
 		Prompt: []string{
 			prompt,
 		},
-		MaxTokens: gpt3.IntPtr(100),
+		Temperature: gpt3.Float32Ptr(0),
+		MaxTokens:   gpt3.IntPtr(100),
 	})
 
 	if err != nil {
