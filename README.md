@@ -1,6 +1,6 @@
 # ai-commit
 
-> No more headaches with commit messages
+> No more headaches with commit messages.
 
 AI-Commit is a command line tool that uses OpenAI's language generation capabilities to generate conventional commit messages for your Git repositories.
 
@@ -19,9 +19,23 @@ go install github.com/nguyenvanduocit/ai-commit
 ## Usage
 
 1. Stage the changes you want to commit in Git.
-2. Run the AI-Commit tool with `ai-commit` command.
+2. Run `ai-commit` command.
 3. The tool will generate a commit message and print it to the console.
 
+If you want the tool auto create commit, you can use `--commit` flag.
+
+## Tip
+
+It's recommended to make multiple small commits, commit more often.
+
+## Todo
+
+- [ ] Auto split changes in to multiple commits.
+
 ## License
+
 AI-Commit is released under the MIT license. See LICENSE for more information.
 
+## Contributing
+
+Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.
