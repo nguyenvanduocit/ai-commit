@@ -22,7 +22,7 @@ func main() {
 	}
 
 	shouldCommit := false
-	flag.BoolVar(&shouldCommit, "commit", false, "commit the changes")
+	flag.BoolVar(&shouldCommit, "commit", false, "commit the changes directly")
 
 	flag.Parse()
 
