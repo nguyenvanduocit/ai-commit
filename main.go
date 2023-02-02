@@ -57,7 +57,7 @@ func main() {
 
 		fmt.Println("\n=> " + commitMessage + "\n")
 
-		fmt.Print("Does it fit? [y/N/c]: ")
+		fmt.Print("Does it fit? [y/N/a]: ")
 		var input string
 		fmt.Scanln(&input)
 		if input == "y" {
@@ -71,8 +71,8 @@ func main() {
 			break
 		}
 
-		if input == "c" {
-			fmt.Print("Prompt adjustment: ")
+		if input == "a" {
+			fmt.Print("Adjustment (adjective only): ")
 			fmt.Scanln(&promptAdjustment)
 		}
 	}
