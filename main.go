@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"github.com/PullRequestInc/go-gpt3"
 	"github.com/nguyenvanduocit/executils"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -20,9 +22,9 @@ func main() {
 	}
 
 	shouldCommit := false
-	if len(os.Args) > 1 {
-		shouldCommit = os.Args[1] == "--commit"
-	}
+	flag.BoolVar(&shouldCommit, "commit", false, "commit the changes")
+
+	flag.Parse()
 
 	// prepare the diff
 	diff, err := getDiff()
@@ -41,37 +43,18 @@ func main() {
 	}
 
 	// prepare the client
-	ctx, cancel := context.WithTimeout(context.Background(), 20)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
 
-	// do the request
-	resp, err := client.Completion(ctx, gpt3.CompletionRequest{
-		Prompt: []string{
-			generateCommitPrompt(diff),
-		},
-		MaxTokens: gpt3.IntPtr(100),
-	})
+	commitPrompt := generateCommitPrompt(diff)
+
+	commitMessage, err := complete(ctx, client, commitPrompt)
 	if err != nil {
 		fmt.Println(errors.WithMessage(err, "failed to generate commit message"))
 		os.Exit(1)
 	}
-
-	if len(resp.Choices) == 0 {
-		fmt.Println("No commit message was generated")
-		os.Exit(1)
-	}
-
-	// clean up the commit message
-	commitMessage := strings.TrimSpace(resp.Choices[0].Text)
-
-	if commitMessage == "" {
-		fmt.Println("No commit message was generated")
-		os.Exit(1)
-	}
-
-	fmt.Println(commitMessage)
 
 	if shouldCommit {
 		if err := commit(commitMessage); err != nil {
@@ -82,6 +65,25 @@ func main() {
 		fmt.Println("Committed")
 		return
 	}
+}
+
+func complete(ctx context.Context, client gpt3.Client, prompt string) (string, error) {
+	resp, err := client.Completion(ctx, gpt3.CompletionRequest{
+		Prompt: []string{
+			prompt,
+		},
+		MaxTokens: gpt3.IntPtr(100),
+	})
+
+	if err != nil {
+		return "", errors.WithMessage(err, "failed to complete")
+	}
+
+	if len(resp.Choices) == 0 {
+		return "", errors.New("no choice was returned")
+	}
+
+	return strings.TrimSpace(resp.Choices[0].Text), nil
 }
 
 // commit commits the changes
