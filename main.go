@@ -63,18 +63,18 @@ func main() {
 			break
 		}
 
-		fmt.Print("Using this message? [y/N]: ")
+		fmt.Print("Does it fit? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
 		if input == "y" {
-			break
-		}
+			// ask for the type
+			fmt.Print("Conventional type: ")
+			fmt.Scanln(&input)
+			if input != "" {
+				commitMessage = input + ": " + commitMessage
+			}
 
-		// ask for the type
-		fmt.Print("Conventional type: ")
-		fmt.Scanln(&input)
-		if input != "" {
-			commitMessage = input + ": " + commitMessage
+			break
 		}
 	}
 
@@ -83,7 +83,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Committed")
+	fmt.Println("Commit successfully")
 }
 
 func complete(ctx context.Context, client gpt3.Client, prompt string) (string, error) {
