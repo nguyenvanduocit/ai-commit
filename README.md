@@ -12,9 +12,15 @@ Note: Using AI-Commit will result in charges from OpenAI for API usage, so be su
 
 ## Install
 
+### Use go
+
 ```bash
 go install github.com/nguyenvanduocit/ai-commit
 ```
+
+### Prebuilt binaries
+
+You can download prebuilt binaries for Linux, macOS, and Windows from the [releases page]()
 
 ## Usage
 
