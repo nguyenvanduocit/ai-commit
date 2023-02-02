@@ -1,3 +1,5 @@
+![](./stuff/preview.gif)
+
 # ai-commit
 
 > No more headaches with commit messages.

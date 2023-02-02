@@ -61,7 +61,7 @@ func main() {
 		fmt.Scanln(&input)
 		if input == "y" {
 			// ask for the type
-			fmt.Print("Commit type: ")
+			fmt.Print("Commit type (optional): ")
 			fmt.Scanln(&input)
 			if input != "" {
 				commitMessage = input + ": " + commitMessage
