@@ -42,33 +42,39 @@ func main() {
 		os.Exit(0)
 	}
 
-	// prepare the client
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
 	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
 
 	commitPrompt := generateCommitPrompt(diff)
 	commitMessage := ""
 
 	for {
+		// prepare the client
+		ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
+
 		commitMessage, err = complete(ctx, client, commitPrompt)
 		if err != nil {
 			fmt.Println(errors.WithMessage(err, "failed to generate commit message"))
 			os.Exit(1)
 		}
 
-		fmt.Println("Commit message: " + commitMessage)
+		fmt.Println("\n=> " + commitMessage + "\n")
 
 		if shouldCommit {
 			break
 		}
 
-		fmt.Print("Do you want to commit this message? [y/N]: ")
+		fmt.Print("Using this message? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
 		if input == "y" {
 			break
+		}
+
+		// ask for the type
+		fmt.Print("Conventional type: ")
+		fmt.Scanln(&input)
+		if input != "" {
+			commitMessage = input + ": " + commitMessage
 		}
 	}
 
@@ -116,7 +122,7 @@ func commit(message string) error {
 
 // generateCommitPrompt generates the prompt for the commit message. This prompt use to instruct the AI that we want to generate a commit message that follows the conventional commit format
 func generateCommitPrompt(diff string) string {
-	return "Write a short conventional commit message for these changes:\n\n```\n" + diff + "\n```"
+	return "Write a short conventional commit message for these changes, without type:\n\n```\n" + diff + "\n```"
 }
 
 // getDiff returns the diff of the current branch
