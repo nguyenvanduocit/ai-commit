@@ -20,7 +20,7 @@ go install github.com/nguyenvanduocit/ai-commit
 
 ### Prebuilt binaries
 
-You can download prebuilt binaries for Linux, macOS, and Windows from the [releases page]()
+You can download prebuilt binaries for Linux, macOS, and Windows from the [releases page](https://github.com/nguyenvanduocit/ai-commit/releases)
 
 ## Usage
 
