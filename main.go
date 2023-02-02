@@ -62,9 +62,11 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Println("Committed")
+		fmt.Println("Committed with message:", commitMessage)
 		return
 	}
+
+	fmt.Println(commitMessage)
 }
 
 func complete(ctx context.Context, client gpt3.Client, prompt string) (string, error) {
