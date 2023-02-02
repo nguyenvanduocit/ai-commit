@@ -21,9 +21,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	shouldCommit := false
-	flag.BoolVar(&shouldCommit, "commit", false, "commit the changes directly")
-
 	flag.Parse()
 
 	// prepare the diff
@@ -59,16 +56,12 @@ func main() {
 
 		fmt.Println("\n=> " + commitMessage + "\n")
 
-		if shouldCommit {
-			break
-		}
-
 		fmt.Print("Does it fit? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
 		if input == "y" {
 			// ask for the type
-			fmt.Print("Conventional type: ")
+			fmt.Print("Commit type: ")
 			fmt.Scanln(&input)
 			if input != "" {
 				commitMessage = input + ": " + commitMessage
