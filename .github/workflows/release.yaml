@@ -2,28 +2,11 @@ name: goreleaser
 
 on:
   push:
-    branches:
-      - main
     tags:
       - '*'
 
 jobs:
-  create-tag:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Conventional Changelog Action
-        uses: TriPSs/conventional-changelog-action@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          output-file: "false"
-          skip-version-file: "true"
   goreleaser:
-    needs: create-tag
-
     runs-on: ubuntu-latest
     steps:
       -
