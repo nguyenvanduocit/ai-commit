@@ -41,12 +41,13 @@ func main() {
 
 	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
 
-	commitPrompt := generateCommitPrompt(diff)
 	commitMessage := ""
-
+	promptAdjustment := ""
 	for {
 		// prepare the client
 		ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
+
+		commitPrompt := generateCommitPrompt(diff, promptAdjustment)
 
 		commitMessage, err = complete(ctx, client, commitPrompt)
 		if err != nil {
@@ -56,7 +57,7 @@ func main() {
 
 		fmt.Println("\n=> " + commitMessage + "\n")
 
-		fmt.Print("Does it fit? [y/N]: ")
+		fmt.Print("Does it fit? [y/N/c]: ")
 		var input string
 		fmt.Scanln(&input)
 		if input == "y" {
@@ -68,6 +69,11 @@ func main() {
 			}
 
 			break
+		}
+
+		if input == "c" {
+			fmt.Print("Prompt adjustment: ")
+			fmt.Scanln(&promptAdjustment)
 		}
 	}
 
@@ -95,7 +101,10 @@ func complete(ctx context.Context, client gpt3.Client, prompt string) (string, e
 		return "", errors.New("no choice was returned")
 	}
 
-	return strings.TrimSpace(resp.Choices[0].Text), nil
+	answer := strings.TrimSpace(resp.Choices[0].Text)
+	answer = strings.Trim(answer, "\"")
+
+	return answer, nil
 }
 
 // commit commits the changes
@@ -114,8 +123,12 @@ func commit(message string) error {
 }
 
 // generateCommitPrompt generates the prompt for the commit message. This prompt use to instruct the AI that we want to generate a commit message that follows the conventional commit format
-func generateCommitPrompt(diff string) string {
-	return "Write a short conventional commit message for these changes, without type:\n\n```\n" + diff + "\n```"
+func generateCommitPrompt(diff, promptAdjustment string) string {
+	additionalPrompt := "short, simple, and clear"
+	if promptAdjustment != "" {
+		additionalPrompt = promptAdjustment
+	}
+	return "Write a " + additionalPrompt + " commit message for following diff output:" + ":\n\n```\n" + diff + "\n```"
 }
 
 // getDiff returns the diff of the current branch
