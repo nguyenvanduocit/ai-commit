@@ -12,15 +12,19 @@ import (
 
 func main() {
 
+	// prepare the arguments
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
 		fmt.Println("OPENAI_API_KEY is not set")
 		os.Exit(1)
 	}
 
-	ctx := context.Background()
-	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
+	shouldCommit := false
+	if len(os.Args) > 1 {
+		shouldCommit = os.Args[1] == "--commit"
+	}
 
+	// prepare the diff
 	diff, err := getDiff()
 	if err != nil {
 		fmt.Println(errors.WithMessage(err, "failed to get diff"))
@@ -36,6 +40,13 @@ func main() {
 		os.Exit(0)
 	}
 
+	// prepare the client
+	ctx, cancel := context.WithTimeout(context.Background(), 20)
+	defer cancel()
+
+	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
+
+	// do the request
 	resp, err := client.Completion(ctx, gpt3.CompletionRequest{
 		Prompt: []string{
 			generateCommitPrompt(diff),
@@ -47,11 +58,48 @@ func main() {
 		os.Exit(1)
 	}
 
+	if len(resp.Choices) == 0 {
+		fmt.Println("No commit message was generated")
+		os.Exit(1)
+	}
+
+	// clean up the commit message
 	commitMessage := strings.TrimSpace(resp.Choices[0].Text)
 
-	fmt.Print(commitMessage)
+	if commitMessage == "" {
+		fmt.Println("No commit message was generated")
+		os.Exit(1)
+	}
+
+	fmt.Println(commitMessage)
+
+	if shouldCommit {
+		if err := commit(commitMessage); err != nil {
+			fmt.Println(errors.WithMessage(err, "failed to commit"))
+			os.Exit(1)
+		}
+
+		fmt.Println("Committed")
+		return
+	}
 }
 
+// commit commits the changes
+func commit(message string) error {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	executils.Run("git",
+		executils.WithDir(workingDir),
+		executils.WithArgs("commit", "-m", message),
+	)
+
+	return nil
+}
+
+// generateCommitPrompt generates the prompt for the commit message. This prompt use to instruct the AI that we want to generate a commit message that follows the conventional commit format
 func generateCommitPrompt(diff string) string {
 	return "Write a short conventional commit message for these changes:\n\n```\n" + diff + "\n```"
 }
@@ -64,7 +112,6 @@ func getDiff() (string, error) {
 	}
 
 	out := strings.Builder{}
-
 	executils.Run("git",
 		executils.WithDir(workingDir),
 		executils.WithArgs("diff", "--cached"),
@@ -74,6 +121,7 @@ func getDiff() (string, error) {
 	return strings.TrimSpace(out.String()), nil
 }
 
+// isDirty returns true if the repo is dirty
 func isDirty() bool {
 	workingDir, err := os.Getwd()
 	if err != nil {
