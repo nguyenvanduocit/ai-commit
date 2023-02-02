@@ -21,11 +21,11 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.19.5
-      - name: Bump version and push tag
-        id: tag_version
-        uses: miguelfito/github-bump-and-tag-action@v1
+      - name: Conventional Changelog Action
+        uses: TriPSs/conventional-changelog-action@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-commit: "true"
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
