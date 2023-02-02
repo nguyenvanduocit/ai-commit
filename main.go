@@ -49,24 +49,35 @@ func main() {
 	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
 
 	commitPrompt := generateCommitPrompt(diff)
+	commitMessage := ""
 
-	commitMessage, err := complete(ctx, client, commitPrompt)
-	if err != nil {
-		fmt.Println(errors.WithMessage(err, "failed to generate commit message"))
-		os.Exit(1)
-	}
-
-	if shouldCommit {
-		if err := commit(commitMessage); err != nil {
-			fmt.Println(errors.WithMessage(err, "failed to commit"))
+	for {
+		commitMessage, err = complete(ctx, client, commitPrompt)
+		if err != nil {
+			fmt.Println(errors.WithMessage(err, "failed to generate commit message"))
 			os.Exit(1)
 		}
 
-		fmt.Println("Committed with message:", commitMessage)
-		return
+		fmt.Println("Commit message: " + commitMessage)
+
+		if shouldCommit {
+			break
+		}
+
+		fmt.Print("Do you want to commit this message? [y/N]: ")
+		var input string
+		fmt.Scanln(&input)
+		if input == "y" {
+			break
+		}
 	}
 
-	fmt.Println(commitMessage)
+	if err := commit(commitMessage); err != nil {
+		fmt.Println(errors.WithMessage(err, "failed to commit"))
+		os.Exit(1)
+	}
+
+	fmt.Println("Committed")
 }
 
 func complete(ctx context.Context, client gpt3.Client, prompt string) (string, error) {
