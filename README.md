@@ -32,11 +32,13 @@ You can download prebuilt binaries for Linux, macOS, and Windows from the [relea
 2. Run `ai-commit` command.
 3. The tool will generate a commit message and print it to the console.
 4. If you are satisfied with the generated message, press `y`; if not press `n` to generate a new message; press `a` to make adjustment.
-5. Provide the commit type your self.
+5. Commit type is optional.
 
 ## Tip
 
 It's recommended to make multiple small commits, commit more often.
+
+Adjustment must be a list of adjectives to describe the commit message. Default adjustment is "short, simple, and clear"
 
 ## Todo
 
