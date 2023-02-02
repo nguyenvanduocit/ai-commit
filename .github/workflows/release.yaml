@@ -25,7 +25,6 @@ jobs:
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          skip-commit: "true"
       -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
