@@ -32,7 +32,6 @@ You can download prebuilt binaries for Linux, macOS, and Windows from the [relea
 4. If you are satisfied with the generated message, press `y` if not press `n` to generate a new message.
 5. Provide the commit type your self.
 
-
 ## Tip
 
 It's recommended to make multiple small commits, commit more often.
@@ -41,6 +40,7 @@ It's recommended to make multiple small commits, commit more often.
 
 - [ ] Auto split changes in to multiple commits.
 - [ ] Detect commit type.
+- [ ] Auto tags??
 
 ## License
 
