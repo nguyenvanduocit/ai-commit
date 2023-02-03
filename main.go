@@ -57,23 +57,34 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Println("\n=> " + commitMessage + "\n")
+		fmt.Printf("\n(temperature = %.1f) => %s\n\n", *temperature, commitMessage)
 
-		fmt.Print("Does it fit? [y/n]: ")
+		fmt.Print("Does it fit?  \nor try new temperature (y/0-1): ")
+
 		var input string
 		fmt.Scanln(&input)
+
+		if input == "1" {
+			continue
+		}
+
 		if input == "y" {
 			// ask for the type
 			fmt.Print("Commit prefix (optional): ")
 			fmt.Scanln(&input)
+
 			if input != "" {
 				commitMessage = input + ": " + commitMessage
 			}
 
 			break
 		}
-		fmt.Printf("Temperature (%.1f): ", *temperature)
-		fmt.Scanln(temperature)
+
+		// check if the input is a float number
+		if _, err := fmt.Sscanf(input, "%f", temperature); err != nil {
+			fmt.Println("Invalid input")
+			continue
+		}
 	}
 
 	if err := commit(commitMessage); err != nil {
