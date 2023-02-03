@@ -136,7 +136,7 @@ func getDiff() (string, error) {
 	out := strings.Builder{}
 	executils.Run("git",
 		executils.WithDir(workingDir),
-		executils.WithArgs("diff", "--cached"),
+		executils.WithArgs("diff", "--cached", "--unified=0"),
 		executils.WithStdOut(&out),
 	)
 
