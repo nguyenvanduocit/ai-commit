@@ -83,7 +83,12 @@ func main() {
 		// check if the input is a float number
 		if _, err := fmt.Sscanf(input, "%f", temperature); err != nil {
 			fmt.Println("Invalid input")
-			continue
+			break
+		}
+
+		if *temperature < 0 || *temperature > 1 {
+			fmt.Println("Temperature must be between 0 and 1")
+			break
 		}
 	}
 
