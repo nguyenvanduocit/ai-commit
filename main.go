@@ -21,6 +21,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	temperature := flag.Float64("t", 0.7, "The temperature of the model. Higher temperature results in more random completions. Acceptable values are 0.0 to 1.0, inclusive.")
+
 	flag.Parse()
 
 	// prepare the diff
@@ -49,7 +51,7 @@ func main() {
 
 		commitPrompt := generateCommitPrompt(diff, promptAdjustment)
 
-		commitMessage, err = complete(ctx, client, commitPrompt)
+		commitMessage, err = complete(ctx, client, float32(*temperature), commitPrompt)
 		if err != nil {
 			fmt.Println(errors.WithMessage(err, "failed to generate commit message"))
 			os.Exit(1)
@@ -70,9 +72,8 @@ func main() {
 
 			break
 		}
-		fmt.Println("Current prompt adjustment: " + promptAdjustment)
-		fmt.Print("Adjustment (adjective only): ")
-		fmt.Scanln(&promptAdjustment)
+		fmt.Printf("Temperature (%.1f): ", *temperature)
+		fmt.Scanln(temperature)
 	}
 
 	if err := commit(commitMessage); err != nil {
@@ -83,12 +84,12 @@ func main() {
 	fmt.Println("Commit successfully")
 }
 
-func complete(ctx context.Context, client gpt3.Client, prompt string) (string, error) {
+func complete(ctx context.Context, client gpt3.Client, temperature float32, prompt string) (string, error) {
 	resp, err := client.Completion(ctx, gpt3.CompletionRequest{
 		Prompt: []string{
 			prompt,
 		},
-		Temperature: gpt3.Float32Ptr(0),
+		Temperature: gpt3.Float32Ptr(temperature),
 		MaxTokens:   gpt3.IntPtr(100),
 	})
 
