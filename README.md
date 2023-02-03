@@ -19,7 +19,7 @@ There are two ways to install AI-Commit:
 ### Use go
 
 ```bash
-go install github.com/nguyenvanduocit/ai-commit
+go install github.com/nguyenvanduocit/ai-commit@latest
 ```
 
 ### Prebuilt binaries
