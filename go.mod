@@ -1,4 +1,4 @@
-module hello-openai
+module ai-commit
 
 go 1.19
 
