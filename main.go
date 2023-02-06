@@ -109,6 +109,7 @@ func complete(ctx context.Context, client gpt3.Client, temperature float32, prom
 		Prompt: []string{
 			prompt,
 		},
+		Stop:        []string{"<|im_end|>"},
 		Temperature: gpt3.Float32Ptr(temperature),
 		MaxTokens:   gpt3.IntPtr(100),
 	})
