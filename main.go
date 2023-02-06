@@ -59,7 +59,7 @@ func main() {
 
 		fmt.Printf("\n(temperature = %.1f) => %s\n\n", *temperature, commitMessage)
 
-		fmt.Print("Does it fit?  \nor try new temperature (y/0-1): ")
+		fmt.Print("Do you like it?  \nor try new temperature (y/0-1): ")
 
 		var input string
 		fmt.Scanln(&input)
