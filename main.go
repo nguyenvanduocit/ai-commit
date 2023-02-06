@@ -41,7 +41,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
+	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine("text-chat-davinci-002-20221122"))
 
 	commitMessage := ""
 	promptAdjustment := "short, simple, clear"
