@@ -41,7 +41,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine("text-chat-davinci-002-20221122"))
+	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
 
 	commitMessage := ""
 	promptAdjustment := "short, simple, clear"
@@ -109,7 +109,6 @@ func complete(ctx context.Context, client gpt3.Client, temperature float32, prom
 		Prompt: []string{
 			prompt,
 		},
-		Stop:        []string{"<|im_end|>"},
 		Temperature: gpt3.Float32Ptr(temperature),
 		MaxTokens:   gpt3.IntPtr(100),
 	})
@@ -145,7 +144,7 @@ func commit(message string) error {
 
 // generateCommitPrompt generates the prompt for the commit message. This prompt use to instruct the AI that we want to generate a commit message that follows the conventional commit format
 func generateCommitPrompt(diff, promptAdjustment string) string {
-	return "Write a " + promptAdjustment + " commit message for following diff output:" + ":\n\n```\n" + diff + "\n```"
+	return "Write a " + promptAdjustment + " commit message for following diff output:" + ":\n\n```\n" + diff + "\n```\n\n"
 }
 
 // getDiff returns the diff of the current branch
