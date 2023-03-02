@@ -102,7 +102,7 @@ func main() {
 
 	// ask for prefix
 	prefix := askForPrefix()
-	commitMessage = prefix + ": " + commitMessage
+	commitMessage = joinPrefix(prefix, commitMessage)
 
 	if err := commit(commitMessage); err != nil {
 		printError("failed to commit: " + err.Error())
@@ -110,6 +110,20 @@ func main() {
 	}
 
 	printSuccess("Commit successfully with message: " + commitMessage)
+}
+
+func joinPrefix(prefix string, message string) string {
+
+	if prefix == "" {
+		return message
+	}
+
+	messageParts := strings.Split(message, ":")
+	if len(messageParts) == 2 {
+		message = strings.TrimSpace(messageParts[1])
+	}
+
+	return prefix + ": " + message
 }
 
 func askForPrefix() string {
@@ -127,8 +141,7 @@ func askForPrefix() string {
 		prefix = strings.TrimSpace(prefix)
 
 		if prefix == "" {
-			printWarning("Please enter your commit prefix")
-			continue
+			break
 		}
 
 		if !isPrefixValid(prefix) {
