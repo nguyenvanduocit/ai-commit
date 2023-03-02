@@ -13,7 +13,7 @@ import (
 
 var messages = []*Message{
 	{
-		Role:    "user",
+		Role:    "system",
 		Content: `You are a senior developer, Write commit message for this diff, only response the message, no need prefix`,
 	},
 }
@@ -60,10 +60,10 @@ func main() {
 		}
 
 		if commitMessage == "" {
-			commitMessage = "I can not understand your message, please try again"
+			printNormal("I can not understand your message, please try again")
+		} else {
+			printNormal(commitMessage)
 		}
-
-		printNormal(commitMessage)
 
 		userRequest := ""
 		for {
@@ -91,7 +91,7 @@ func main() {
 
 		if commitMessage != "" {
 			messages = append(messages, &Message{
-				Role:    "system",
+				Role:    "assistant",
 				Content: commitMessage,
 			})
 		} else {
