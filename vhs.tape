@@ -5,7 +5,7 @@ Set Width 1200
 Set Height 600
 Set PlaybackSpeed 2
 
-Type "echo Welcome to AI-Commit"
+Type "echo Thank you, follow me on twitter @duocdev for updates on my projects!"
 
 Sleep 500ms
 
