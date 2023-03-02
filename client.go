@@ -125,3 +125,20 @@ func (c *GptClient) IsAgree(userResponse string) bool {
 
 	return strings.HasPrefix(lowerResponse, "agreement")
 }
+
+// SingleQuestion asks a single question to the user
+func (c *GptClient) SingleQuestion(question string) (string, error) {
+	message := []*Message{
+		{
+			Role:    "user",
+			Content: question,
+		},
+	}
+
+	response, err := c.ChatComplete(context.Background(), message)
+	if err != nil {
+		return "", err
+	}
+
+	return response, nil
+}

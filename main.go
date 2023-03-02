@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/nguyenvanduocit/executils"
 	"github.com/pkg/errors"
 	"os"
@@ -27,6 +28,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	client := NewGptClient(apiKey)
+
 	// prepare the diff
 	diff, err := getDiff()
 	if err != nil {
@@ -43,11 +46,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	client := NewGptClient(apiKey)
-
 	commitMessage := ""
 	for {
-		// prepare the client
 		ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
 		messages = append(messages, &Message{
 			Role:    "user",
@@ -60,7 +60,13 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("\n%s\n\n", commitMessage)
+		var style = lipgloss.NewStyle().
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderForeground(lipgloss.Color("63"))
+
+		style.SetString(commitMessage)
+
+		fmt.Println(style)
 
 		fmt.Print("\nUser: ")
 
