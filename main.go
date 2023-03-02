@@ -19,6 +19,16 @@ var messages = []*Message{
 	},
 }
 
+func printCommitMessage(commitMessage string) {
+	var style = lipgloss.NewStyle().
+		SetString(commitMessage).
+		Padding(1, 2).
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("63"))
+
+	fmt.Println(style)
+}
+
 func main() {
 
 	// prepare the arguments
@@ -60,13 +70,11 @@ func main() {
 			os.Exit(1)
 		}
 
-		var style = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("63"))
+		if commitMessage == "" {
+			commitMessage = "I can not understand your message, please try again"
+		}
 
-		style.SetString(commitMessage)
-
-		fmt.Println(style)
+		printCommitMessage(commitMessage)
 
 		fmt.Print("\nUser: ")
 
@@ -78,7 +86,8 @@ func main() {
 		}
 
 		if line == "" {
-			break
+			printCommitMessage("Do you want to continue?")
+			continue
 		}
 
 		isAgree := client.IsAgree(line)
@@ -86,17 +95,15 @@ func main() {
 			break
 		}
 
-		fmt.Println("-----------------")
-
-		messages = append(messages, &Message{
-			Role:    "system",
-			Content: commitMessage,
-		})
-
-		messages = append(messages, &Message{
-			Role:    "user",
-			Content: line,
-		})
+		if commitMessage != "" {
+			messages = append(messages, &Message{
+				Role:    "system",
+				Content: commitMessage,
+			})
+		} else {
+			// replace the last message
+			messages[len(messages)-1].Content = line
+		}
 	}
 
 	if err := commit(commitMessage); err != nil {

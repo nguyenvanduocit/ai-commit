@@ -86,7 +86,7 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 	}
 
 	if len(response.Choices) == 0 {
-		return "I don't know", nil
+		return "", nil
 	}
 
 	return strings.TrimSpace(response.Choices[0].Message.Content), nil
