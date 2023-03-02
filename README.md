@@ -1,4 +1,5 @@
-[![upvote](https://badge.vercel.app/producthunt/upvotes/ai-commit-2)](https://www.producthunt.com/posts/ai-commit-2)
+[![upvote](https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=382034&amp;theme=light)](https://www.producthunt.com/posts/ai-commit-2)
+
 
 [![Preview](./stuff/demo.gif)](https://youtu.be/7cVU3BuNpok)
 
