@@ -96,8 +96,22 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 
 }
 
+var agreeWords = []string{
+	"yes",
+	"y",
+	"ok",
+	"okay",
+	"agree",
+}
+
 // IsAgree returns true if the user agrees with the commit message
 func (c *GptClient) IsAgree(userResponse string) bool {
+	for _, word := range agreeWords {
+		if strings.HasPrefix(strings.ToLower(userResponse), word) {
+			return true
+		}
+	}
+
 	message := []*Message{
 		{
 			Role:    "user",

@@ -60,7 +60,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("Bot: %s\n", commitMessage)
+		fmt.Printf("\nai-commiter: %s\n\n", commitMessage)
 
 		fmt.Print("User: ")
 
