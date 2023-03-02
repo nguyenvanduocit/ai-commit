@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -90,9 +89,7 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 		return "I don't know", nil
 	}
 
-	fmt.Println(response.Choices[0].Message.Content)
-
-	return response.Choices[0].Message.Content, nil
+	return strings.TrimSpace(response.Choices[0].Message.Content), nil
 
 }
 

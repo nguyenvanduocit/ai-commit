@@ -60,9 +60,9 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("\nai-commiter: %s\n\n", commitMessage)
+		fmt.Printf("\n%s\n\n", commitMessage)
 
-		fmt.Print("User: ")
+		fmt.Print("\nUser: ")
 
 		reader := bufio.NewReader(os.Stdin)
 		line, err := reader.ReadString('\n')
