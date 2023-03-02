@@ -114,10 +114,11 @@ func main() {
 
 func askForPrefix() string {
 	prefix := ""
+	var err error
 	for {
 		fmt.Print("Commit prefix: ")
 		reader := bufio.NewReader(os.Stdin)
-		prefix, err := reader.ReadString('\n')
+		prefix, err = reader.ReadString('\n')
 		if err != nil {
 			printError("failed to read user input: " + err.Error())
 			os.Exit(1)
