@@ -1,3 +1,4 @@
+[![upvote](https://badge.vercel.app/producthunt/upvotes/ai-commit-2)](https://www.producthunt.com/posts/ai-commit-2)
 
 [![Preview](./stuff/demo.gif)](https://youtu.be/7cVU3BuNpok)
 
