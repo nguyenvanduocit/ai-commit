@@ -14,7 +14,7 @@ import (
 var messages = []*Message{
 	{
 		Role:    "user",
-		Content: `You are a senior developer, you are writing commit message for this diff, make it short, but meaningful, only response the message`,
+		Content: `You are a senior developer, Write commit message for this diff, only response the message, no need prefix`,
 	},
 }
 
