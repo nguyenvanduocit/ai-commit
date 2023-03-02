@@ -80,13 +80,13 @@ func main() {
 		userRequest := ""
 		for {
 			reader := bufio.NewReader(os.Stdin)
-			line, err := reader.ReadString('\n')
+			userRequest, err = reader.ReadString('\n')
 			if err != nil {
 				fmt.Println(errors.WithMessage(err, "failed to read user input"))
 				os.Exit(1)
 			}
 
-			if line == "" {
+			if userRequest == "" {
 				printCommitMessage("Please enter your response")
 				continue
 			}
