@@ -100,12 +100,68 @@ func main() {
 		}
 	}
 
+	// ask for prefix
+	prefix := askForPrefix()
+	commitMessage = prefix + ": " + commitMessage
+
 	if err := commit(commitMessage); err != nil {
 		printError("failed to commit: " + err.Error())
 		os.Exit(1)
 	}
 
-	printSuccess("Commit successfully")
+	printSuccess("Commit successfully with message: " + commitMessage)
+}
+
+func askForPrefix() string {
+	prefix := ""
+	for {
+		fmt.Print("Commit prefix: ")
+		reader := bufio.NewReader(os.Stdin)
+		prefix, err := reader.ReadString('\n')
+		if err != nil {
+			printError("failed to read user input: " + err.Error())
+			os.Exit(1)
+		}
+
+		prefix = strings.TrimSpace(prefix)
+
+		if prefix == "" {
+			printWarning("Please enter your commit prefix")
+			continue
+		}
+
+		if !isPrefixValid(prefix) {
+			printWarning("Invalid commit prefix, please try again")
+			continue
+		}
+
+		break
+	}
+
+	return prefix
+}
+
+var prefixes = []string{
+	"feat",
+	"fix",
+	"docs",
+	"style",
+	"refactor",
+	"perf",
+	"test",
+	"chore",
+	"revert",
+	"build",
+}
+
+func isPrefixValid(prefix string) bool {
+	for _, p := range prefixes {
+		if strings.HasPrefix(prefix, p) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // commit commits the changes
