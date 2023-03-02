@@ -78,7 +78,7 @@ func main() {
 			userRequest = strings.TrimSpace(userRequest)
 
 			if userRequest == "" {
-				printWarning("Please enter your response")
+				printWarning("Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
 				continue
 			}
 
@@ -100,7 +100,6 @@ func main() {
 		}
 	}
 
-	// ask for prefix
 	prefix := askForPrefix()
 	commitMessage = joinPrefix(prefix, commitMessage)
 
