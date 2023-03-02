@@ -1,16 +1,22 @@
 package main
 
 import (
+	"bufio"
 	"context"
-	"flag"
 	"fmt"
-	"github.com/PullRequestInc/go-gpt3"
 	"github.com/nguyenvanduocit/executils"
 	"github.com/pkg/errors"
 	"os"
 	"strings"
 	"time"
 )
+
+var messages = []*Message{
+	{
+		Role:    "user",
+		Content: `You are a senior developer, you are using conventional commit to write commit message for this diff`,
+	},
+}
 
 func main() {
 
@@ -20,10 +26,6 @@ func main() {
 		fmt.Println("OPENAI_API_KEY is not set")
 		os.Exit(1)
 	}
-
-	temperature := flag.Float64("t", 0.7, "The temperature of the model. Higher temperature results in more random completions. Acceptable values are 0.0 to 1.0, inclusive.")
-
-	flag.Parse()
 
 	// prepare the diff
 	diff, err := getDiff()
@@ -41,59 +43,52 @@ func main() {
 		os.Exit(0)
 	}
 
-	client := gpt3.NewClient(apiKey, gpt3.WithDefaultEngine(gpt3.TextDavinci003Engine))
+	client := NewGptClient(apiKey)
 
 	commitMessage := ""
-	promptAdjustment := "short, simple, clear"
 	for {
 		// prepare the client
 		ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
+		messages = append(messages, &Message{
+			Role:    "user",
+			Content: diff,
+		})
 
-		commitPrompt := generateCommitPrompt(diff, promptAdjustment)
-
-		commitMessage, err = complete(ctx, client, float32(*temperature), commitPrompt)
+		commitMessage, err = client.ChatComplete(ctx, messages)
 		if err != nil {
 			fmt.Println(errors.WithMessage(err, "failed to generate commit message"))
 			os.Exit(1)
 		}
 
-		fmt.Printf("\n(temperature = %.1f) => %s\n\n", *temperature, commitMessage)
+		fmt.Printf("Bot: %s\n", commitMessage)
 
-		fmt.Print("Do you like it?  \nor try new temperature (y/0-1): ")
+		fmt.Print("User: ")
 
-		var input string
-		fmt.Scanln(&input)
-
-		if input == "1" {
-			continue
+		reader := bufio.NewReader(os.Stdin)
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println(errors.WithMessage(err, "failed to read user input"))
+			os.Exit(1)
 		}
 
-		if input == "y" {
-			// ask for the type
-			fmt.Print("Commit prefix (optional): ")
-			fmt.Scanln(&input)
-
-			if input != "" {
-				commitMessage = input + ": " + commitMessage
-			}
-
+		if line == "" {
 			break
 		}
 
-		if input == "" {
-			continue
-		}
-
-		// check if the input is a float number
-		if _, err := fmt.Sscanf(input, "%f", temperature); err != nil {
-			fmt.Println("Invalid input")
+		isAgree := client.IsAgree(line)
+		if isAgree {
 			break
 		}
 
-		if *temperature < 0 || *temperature > 1 {
-			fmt.Println("Temperature must be between 0 and 1")
-			break
-		}
+		messages = append(messages, &Message{
+			Role:    "system",
+			Content: commitMessage,
+		})
+
+		messages = append(messages, &Message{
+			Role:    "user",
+			Content: line,
+		})
 	}
 
 	if err := commit(commitMessage); err != nil {
@@ -104,29 +99,6 @@ func main() {
 	fmt.Println("Commit successfully")
 }
 
-func complete(ctx context.Context, client gpt3.Client, temperature float32, prompt string) (string, error) {
-	resp, err := client.Completion(ctx, gpt3.CompletionRequest{
-		Prompt: []string{
-			prompt,
-		},
-		Temperature: gpt3.Float32Ptr(temperature),
-		MaxTokens:   gpt3.IntPtr(100),
-	})
-
-	if err != nil {
-		return "", errors.WithMessage(err, "failed to complete")
-	}
-
-	if len(resp.Choices) == 0 {
-		return "", errors.New("no choice was returned")
-	}
-
-	answer := strings.TrimSpace(resp.Choices[0].Text)
-	answer = strings.Trim(answer, "\"")
-
-	return answer, nil
-}
-
 // commit commits the changes
 func commit(message string) error {
 	workingDir, err := os.Getwd()
@@ -134,17 +106,10 @@ func commit(message string) error {
 		return err
 	}
 
-	executils.Run("git",
+	return executils.Run("git",
 		executils.WithDir(workingDir),
 		executils.WithArgs("commit", "-m", message),
 	)
-
-	return nil
-}
-
-// generateCommitPrompt generates the prompt for the commit message. This prompt use to instruct the AI that we want to generate a commit message that follows the conventional commit format
-func generateCommitPrompt(diff, promptAdjustment string) string {
-	return "Write a " + promptAdjustment + " commit message for following diff output:" + ":\n\n```\n" + diff + "\n```\n\n"
 }
 
 // getDiff returns the diff of the current branch
