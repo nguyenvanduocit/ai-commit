@@ -9,34 +9,30 @@ var normalStyle = lipgloss.NewStyle().
 	BorderStyle(lipgloss.NormalBorder()).
 	BorderForeground(lipgloss.Color("63"))
 
-var warningStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("202"))
+var warningStyle = normalStyle.Copy().BorderForeground(lipgloss.Color("202"))
 
-var errorStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("9"))
+var errorStyle = normalStyle.Copy().BorderForeground(lipgloss.Color("9"))
 
-var successStyle = lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("46"))
+var successStyle = normalStyle.Copy().BorderForeground(lipgloss.Color("46"))
 
 func printNormal(message string) {
 
 	fmt.Println(normalStyle.
-		SetString(message))
+		Render(message))
 }
 
 func printWarning(message string) {
 	fmt.Println(warningStyle.
-		SetString(message))
+		Render(message))
 }
 
 func printSuccess(message string) {
 	fmt.Println(successStyle.
-		SetString(message))
+		Render(message))
 }
 
 func printError(message string) {
 	fmt.Println(errorStyle.
-		SetString(message))
+		Render(message))
 
 }
