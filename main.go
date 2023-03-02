@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/nguyenvanduocit/executils"
 	"github.com/pkg/errors"
 	"os"
@@ -17,32 +16,6 @@ var messages = []*Message{
 		Role:    "user",
 		Content: `You are a senior developer, you are writing commit message for this diff, make it short, but meaningful, only response the message`,
 	},
-}
-
-var normalStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("63"))
-
-var warningStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("202"))
-
-var successStyle = lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("46"))
-
-func printNormal(commitMessage string) {
-
-	fmt.Println(normalStyle.
-		SetString(commitMessage))
-}
-
-func printWarning(commitMessage string) {
-	fmt.Println(warningStyle.
-		SetString(commitMessage))
-}
-
-func printSuccess(commitMessage string) {
-	fmt.Println(successStyle.
-		SetString(commitMessage))
 }
 
 func main() {
@@ -82,7 +55,7 @@ func main() {
 
 		commitMessage, err = client.ChatComplete(ctx, messages)
 		if err != nil {
-			fmt.Println(errors.WithMessage(err, "failed to generate commit message"))
+			printError("failed to generate commit message: " + err.Error())
 			os.Exit(1)
 		}
 
@@ -94,11 +67,11 @@ func main() {
 
 		userRequest := ""
 		for {
-			fmt.Print("\nUser: ")
+			fmt.Print("User: ")
 			reader := bufio.NewReader(os.Stdin)
 			userRequest, err = reader.ReadString('\n')
 			if err != nil {
-				fmt.Println(errors.WithMessage(err, "failed to read user input"))
+				printError("failed to read user input: " + err.Error())
 				os.Exit(1)
 			}
 
@@ -129,7 +102,7 @@ func main() {
 	}
 
 	if err := commit(commitMessage); err != nil {
-		fmt.Println(errors.WithMessage(err, "failed to commit"))
+		printError("failed to commit: " + err.Error())
 		os.Exit(1)
 	}
 
