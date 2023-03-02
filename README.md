@@ -59,4 +59,4 @@ AI-Commit is released under the MIT license. See LICENSE for more information.
 
 Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) first.
 
-[![update](./stuff/fhs.gif)](https://twitter.com/duocdev)
+[![update](./stuff/vhs.gif)](https://twitter.com/duocdev)
