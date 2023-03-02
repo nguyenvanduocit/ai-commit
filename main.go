@@ -85,8 +85,7 @@ func main() {
 			break
 		}
 
-		isAgree := client.IsAgree(userRequest)
-		if isAgree {
+		if isAgree := IsAgree(client, userRequest); isAgree {
 			break
 		}
 
@@ -155,4 +154,37 @@ func isDirty() bool {
 	)
 
 	return out.Len() > 0
+}
+
+var agreeWords = []string{
+	"yes",
+	"y",
+	"ok",
+	"okay",
+	"agree",
+}
+
+// IsAgree returns true if the user agrees with the commit message
+func IsAgree(c *GptClient, userResponse string) bool {
+	for _, word := range agreeWords {
+		if strings.HasPrefix(strings.ToLower(userResponse), word) {
+			return true
+		}
+	}
+
+	message := []*Message{
+		{
+			Role:    "user",
+			Content: "only response with \"change request\" or \"agreement\"; the following message is a change request or agreement: " + userResponse,
+		},
+	}
+
+	response, err := c.ChatComplete(context.Background(), message)
+	if err != nil {
+		return false
+	}
+
+	lowerResponse := strings.ToLower(response)
+
+	return strings.HasPrefix(lowerResponse, "agreement")
 }

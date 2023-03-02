@@ -97,39 +97,6 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 
 }
 
-var agreeWords = []string{
-	"yes",
-	"y",
-	"ok",
-	"okay",
-	"agree",
-}
-
-// IsAgree returns true if the user agrees with the commit message
-func (c *GptClient) IsAgree(userResponse string) bool {
-	for _, word := range agreeWords {
-		if strings.HasPrefix(strings.ToLower(userResponse), word) {
-			return true
-		}
-	}
-
-	message := []*Message{
-		{
-			Role:    "user",
-			Content: "only response with \"change request\" or \"agreement\"; the following message is a change request or agreement: " + userResponse,
-		},
-	}
-
-	response, err := c.ChatComplete(context.Background(), message)
-	if err != nil {
-		return false
-	}
-
-	lowerResponse := strings.ToLower(response)
-
-	return strings.HasPrefix(lowerResponse, "agreement")
-}
-
 // SingleQuestion asks a single question to the user
 func (c *GptClient) SingleQuestion(question string) (string, error) {
 	message := []*Message{
