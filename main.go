@@ -77,20 +77,24 @@ func main() {
 		printCommitMessage(commitMessage)
 
 		fmt.Print("\nUser: ")
+		userRequest := ""
+		for {
+			reader := bufio.NewReader(os.Stdin)
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				fmt.Println(errors.WithMessage(err, "failed to read user input"))
+				os.Exit(1)
+			}
 
-		reader := bufio.NewReader(os.Stdin)
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println(errors.WithMessage(err, "failed to read user input"))
-			os.Exit(1)
+			if line == "" {
+				printCommitMessage("Please enter your response")
+				continue
+			}
+
+			break
 		}
 
-		if line == "" {
-			printCommitMessage("Do you want to continue?")
-			continue
-		}
-
-		isAgree := client.IsAgree(line)
+		isAgree := client.IsAgree(userRequest)
 		if isAgree {
 			break
 		}
@@ -102,7 +106,7 @@ func main() {
 			})
 		} else {
 			// replace the last message
-			messages[len(messages)-1].Content = line
+			messages[len(messages)-1].Content = userRequest
 		}
 	}
 

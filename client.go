@@ -89,7 +89,11 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 		return "", nil
 	}
 
-	return strings.TrimSpace(response.Choices[0].Message.Content), nil
+	firstChoice := response.Choices[0].Message.Content
+	firstChoice = strings.TrimSpace(firstChoice)
+	firstChoice = strings.Trim(firstChoice, `"`)
+
+	return firstChoice, nil
 
 }
 
