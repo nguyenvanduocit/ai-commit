@@ -19,14 +19,30 @@ var messages = []*Message{
 	},
 }
 
-func printCommitMessage(commitMessage string) {
-	var style = lipgloss.NewStyle().
-		SetString(commitMessage).
-		Padding(1, 2).
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("63"))
+var normalStyle = lipgloss.NewStyle().
+	BorderStyle(lipgloss.NormalBorder()).
+	BorderForeground(lipgloss.Color("63"))
 
-	fmt.Println(style)
+var warningStyle = lipgloss.NewStyle().
+	BorderStyle(lipgloss.NormalBorder()).
+	BorderForeground(lipgloss.Color("202"))
+
+var successStyle = lipgloss.NewStyle().BorderStyle(lipgloss.NormalBorder()).BorderForeground(lipgloss.Color("46"))
+
+func printNormal(commitMessage string) {
+
+	fmt.Println(normalStyle.
+		SetString(commitMessage))
+}
+
+func printWarning(commitMessage string) {
+	fmt.Println(warningStyle.
+		SetString(commitMessage))
+}
+
+func printSuccess(commitMessage string) {
+	fmt.Println(successStyle.
+		SetString(commitMessage))
 }
 
 func main() {
@@ -74,11 +90,11 @@ func main() {
 			commitMessage = "I can not understand your message, please try again"
 		}
 
-		printCommitMessage(commitMessage)
+		printNormal(commitMessage)
 
-		fmt.Print("\nUser: ")
 		userRequest := ""
 		for {
+			fmt.Print("\nUser: ")
 			reader := bufio.NewReader(os.Stdin)
 			userRequest, err = reader.ReadString('\n')
 			if err != nil {
@@ -86,8 +102,10 @@ func main() {
 				os.Exit(1)
 			}
 
+			userRequest = strings.TrimSpace(userRequest)
+
 			if userRequest == "" {
-				printCommitMessage("Please enter your response")
+				printWarning("Please enter your response")
 				continue
 			}
 
@@ -115,7 +133,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Commit successfully")
+	printSuccess("Commit successfully")
 }
 
 // commit commits the changes
