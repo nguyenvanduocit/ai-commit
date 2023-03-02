@@ -14,7 +14,7 @@ import (
 var messages = []*Message{
 	{
 		Role:    "user",
-		Content: `You are a senior developer, you are using conventional commit to write commit message for this diff`,
+		Content: `You are a senior developer, you are writing commit message for this diff, make it short, but meaningful, only response the message`,
 	},
 }
 
@@ -79,6 +79,8 @@ func main() {
 		if isAgree {
 			break
 		}
+
+		fmt.Println("-----------------")
 
 		messages = append(messages, &Message{
 			Role:    "system",
