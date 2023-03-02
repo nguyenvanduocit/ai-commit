@@ -101,7 +101,7 @@ func (c *GptClient) IsAgree(userResponse string) bool {
 	message := []*Message{
 		{
 			Role:    "user",
-			Content: "Does it mean \"agree\", only response in a single word agree or disagree: " + userResponse,
+			Content: "only response with \"change request\" or \"agreement\"; the following message is a change request or agreement: " + userResponse,
 		},
 	}
 
@@ -112,5 +112,5 @@ func (c *GptClient) IsAgree(userResponse string) bool {
 
 	lowerResponse := strings.ToLower(response)
 
-	return strings.HasPrefix(lowerResponse, "agree")
+	return strings.HasPrefix(lowerResponse, "agreement")
 }
