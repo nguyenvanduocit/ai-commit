@@ -1,4 +1,8 @@
-![](./stuff/preview.gif)
+
+[![Preview](./stuff/demo.gif)](https://youtu.be/7cVU3BuNpok)
+
+[View Demo](https://youtu.be/7cVU3BuNpok)
+
 
 # ai-commit
 
