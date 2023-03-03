@@ -1,3 +1,4 @@
+name: VirusTotal Scan
 on:
   release:
     types: [published]

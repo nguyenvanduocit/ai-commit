@@ -16,7 +16,6 @@ var errorStyle = normalStyle.Copy().BorderForeground(lipgloss.Color("9"))
 var successStyle = normalStyle.Copy().BorderForeground(lipgloss.Color("46"))
 
 func printNormal(message string) {
-
 	fmt.Println(normalStyle.
 		Render(message))
 }
