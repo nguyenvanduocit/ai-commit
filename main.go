@@ -34,7 +34,7 @@ func main() {
 	if err != nil {
 		explain, err := explainError(context.Background(), client, err)
 		if err != nil {
-			printError("failed to explain error: " + err.Error())
+			printError(err.Error())
 			os.Exit(1)
 		}
 		printError(explain)
@@ -45,12 +45,14 @@ func main() {
 		if isDirty() {
 			fmt.Println("Please stage your changes and try again")
 		} else {
-			fmt.Println("Nothing to commit")
+			fmt.Println("Nothing to commit, working tree clean")
 		}
+
 		os.Exit(0)
 	}
 
 	commitMessage := ""
+	// loop until the commit message is generated
 	for {
 		ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
 		messages = append(messages, &Message{
@@ -58,12 +60,13 @@ func main() {
 			Content: diff,
 		})
 
+		// generate commit message
 		printNormal("Assistant: " + generateLoadingMessage())
 		commitMessage, err = client.ChatComplete(ctx, messages)
 		if err != nil {
 			explain, err := explainError(ctx, client, err)
 			if err != nil {
-				printError("failed to explain error: " + err.Error())
+				printError(err.Error())
 				os.Exit(1)
 			}
 			printError(explain)
@@ -71,11 +74,12 @@ func main() {
 		}
 
 		if commitMessage == "" {
-			printNormal("No commit message generated, please try again")
+			printNormal("Assistant: I don't know what to say about this diff, please give me a hint")
 		} else {
 			printNormal("Assistant: " + commitMessage)
 		}
 
+		// Loop until the user response
 		userRequest := ""
 		for {
 			fmt.Println("Assistant: " + generateInteractiveMessage())
@@ -85,7 +89,7 @@ func main() {
 			if err != nil {
 				explain, err := explainError(ctx, client, err)
 				if err != nil {
-					printError("failed to explain error: " + err.Error())
+					printError(err.Error())
 					os.Exit(1)
 				}
 				printError(explain)
@@ -95,7 +99,7 @@ func main() {
 			userRequest = strings.TrimSpace(userRequest)
 
 			if userRequest == "" {
-				printWarning("Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
+				printWarning("Assistant: Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
 				continue
 			}
 
@@ -121,11 +125,11 @@ func main() {
 	commitMessage = joinPrefix(prefix, commitMessage)
 
 	if err := commit(commitMessage); err != nil {
-		printError("failed to commit: " + err.Error())
+		printError("Assistant: failed to commit: " + err.Error())
 		os.Exit(1)
 	}
 
-	printSuccess("Commit successfully with message: " + commitMessage)
+	printSuccess("Assistant: Commit successfully with message: " + commitMessage)
 }
 
 func joinPrefix(prefix string, message string) string {
