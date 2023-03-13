@@ -146,7 +146,8 @@ func askForPrefix() string {
 	prefix := ""
 	var err error
 	for {
-		fmt.Print("Commit prefix: ")
+		fmt.Println("Assistant: Please enter the commit prefix, press enter to skip")
+		fmt.Print("You: ")
 		reader := bufio.NewReader(os.Stdin)
 		prefix, err = reader.ReadString('\n')
 		if err != nil {
@@ -155,33 +156,10 @@ func askForPrefix() string {
 		}
 
 		prefix = strings.TrimSpace(prefix)
-
-		if prefix == "" {
-			break
-		}
-
-		if !isPrefixValid(prefix) {
-			printWarning("Invalid commit prefix, please try again")
-			continue
-		}
-
 		break
 	}
 
 	return prefix
-}
-
-var prefixes = []string{
-	"feat",
-	"fix",
-	"docs",
-	"style",
-	"refactor",
-	"perf",
-	"test",
-	"chore",
-	"revert",
-	"build",
 }
 
 func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
@@ -196,16 +174,6 @@ func explainError(ctx context.Context, apiClient *GptClient, userError error) (s
 	}
 
 	return response, nil
-}
-
-func isPrefixValid(prefix string) bool {
-	for _, p := range prefixes {
-		if strings.HasPrefix(prefix, p) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // commit commits the changes
