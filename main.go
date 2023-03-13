@@ -14,7 +14,7 @@ import (
 var messages = []*Message{
 	{
 		Role:    "system",
-		Content: `You are a senior developer, Write commit message for this diff, only response the message, no need prefix`,
+		Content: `You are a developer, who are very good at write git commit, write commit message for this diff, only response the message:`,
 	},
 }
 
@@ -38,7 +38,7 @@ func main() {
 
 	if diff == "" {
 		if isDirty() {
-			fmt.Println("The repo is dirty but no thing was staged. Please stage your changes and try again")
+			fmt.Println("Please stage your changes and try again")
 		} else {
 			fmt.Println("Nothing to commit")
 		}
@@ -60,7 +60,7 @@ func main() {
 		}
 
 		if commitMessage == "" {
-			printNormal("I can not understand your message, please try again")
+			printNormal("No commit message generated, please try again")
 		} else {
 			printNormal(commitMessage)
 		}

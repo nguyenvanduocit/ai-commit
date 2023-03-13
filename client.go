@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
 	"io"
 	"net/http"
 	"strings"
@@ -79,6 +81,16 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 		return "", err
 	}
 
+	// check for errors
+	if res.StatusCode != http.StatusOK {
+		errorMessage := gjson.GetBytes(body, "error.message").String()
+		if errorMessage == "" {
+			errorMessage = string(body)
+		}
+
+		return "", errors.New("failed to get response from OpenAI API: " + errorMessage)
+	}
+
 	var response ChatCompleteResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
@@ -86,7 +98,7 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 	}
 
 	if len(response.Choices) == 0 {
-		return "", nil
+		return "", errors.New("no choices returned from OpenAI API")
 	}
 
 	firstChoice := response.Choices[0].Message.Content
