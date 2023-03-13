@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/nguyenvanduocit/executils"
-	"github.com/pkg/errors"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -32,7 +32,12 @@ func main() {
 	// prepare the diff
 	diff, err := getDiff()
 	if err != nil {
-		fmt.Println(errors.WithMessage(err, "failed to get diff"))
+		explain, err := explainError(context.Background(), client, err)
+		if err != nil {
+			printError("failed to explain error: " + err.Error())
+			os.Exit(1)
+		}
+		printError(explain)
 		os.Exit(1)
 	}
 
@@ -53,25 +58,37 @@ func main() {
 			Content: diff,
 		})
 
+		printNormal("Assistant: " + generateLoadingMessage())
 		commitMessage, err = client.ChatComplete(ctx, messages)
 		if err != nil {
-			printError("failed to generate commit message: " + err.Error())
+			explain, err := explainError(ctx, client, err)
+			if err != nil {
+				printError("failed to explain error: " + err.Error())
+				os.Exit(1)
+			}
+			printError(explain)
 			os.Exit(1)
 		}
 
 		if commitMessage == "" {
 			printNormal("No commit message generated, please try again")
 		} else {
-			printNormal(commitMessage)
+			printNormal("Assistant: " + commitMessage)
 		}
 
 		userRequest := ""
 		for {
-			fmt.Print("User: ")
+			fmt.Println("Assistant: " + generateInteractiveMessage())
+			fmt.Print("You: ")
 			reader := bufio.NewReader(os.Stdin)
 			userRequest, err = reader.ReadString('\n')
 			if err != nil {
-				printError("failed to read user input: " + err.Error())
+				explain, err := explainError(ctx, client, err)
+				if err != nil {
+					printError("failed to explain error: " + err.Error())
+					os.Exit(1)
+				}
+				printError(explain)
 				os.Exit(1)
 			}
 
@@ -167,6 +184,20 @@ var prefixes = []string{
 	"build",
 }
 
+func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
+	response, err := apiClient.ChatComplete(ctx, []*Message{
+		{
+			Role:    "system",
+			Content: "You are a developer, explain the error to user: `" + userError.Error() + "`, only response the message:",
+		},
+	})
+	if err != nil {
+		return "", userError
+	}
+
+	return response, nil
+}
+
 func isPrefixValid(prefix string) bool {
 	for _, p := range prefixes {
 		if strings.HasPrefix(prefix, p) {
@@ -256,4 +287,33 @@ func IsAgree(c *GptClient, userResponse string) bool {
 	lowerResponse := strings.ToLower(response)
 
 	return strings.HasPrefix(lowerResponse, "agreement")
+}
+
+var interactiveMessages = []string{
+	"Is this commit message ok?",
+	"Is it ok?",
+	"Changes?",
+	"Any changes?",
+	"Looks good?",
+}
+
+func generateInteractiveMessage() string {
+	return interactiveMessages[rand.Intn(len(interactiveMessages))]
+}
+
+var loadingMessages = []string{
+	"Let me think a bit ...",
+	"I'm thinking ...",
+	"Thinking ...",
+	"Wait a second ...",
+	"Lets see ...",
+	"Generating ...",
+	"What we have here ...",
+	"Looking at the changes ...",
+	"Oh, awesome codes ...",
+	"Oh no, what's this ...",
+}
+
+func generateLoadingMessage() string {
+	return loadingMessages[rand.Intn(len(loadingMessages))]
 }
