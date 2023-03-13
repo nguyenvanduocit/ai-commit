@@ -14,7 +14,7 @@ import (
 var messages = []*Message{
 	{
 		Role:    "system",
-		Content: `You are a developer, who are very good at write git commit, write commit message for this diff, only response the message:`,
+		Content: `You are a developer, you are very good at write git commit, write commit message for this diff, only response the message:`,
 	},
 }
 
