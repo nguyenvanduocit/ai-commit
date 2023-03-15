@@ -11,12 +11,7 @@ import (
 	"time"
 )
 
-var messages = []*Message{
-	{
-		Role:    "system",
-		Content: `You are a GitCommitGPT-4, You will help user to write commit message, do not talk anything else the commit message. Your commit message is short, clean and meaningful.`,
-	},
-}
+var messages []*Message
 
 func main() {
 	// prepare the arguments
@@ -24,6 +19,18 @@ func main() {
 	if apiKey == "" {
 		fmt.Println("OPENAI_API_KEY is not set")
 		os.Exit(1)
+	}
+
+	systemPrompt := os.Getenv("AI_COMMIT_SYSTEM_PROMPT")
+	if systemPrompt == "" {
+		systemPrompt = `You are a GitCommitGPT-4, You will help user to write commit message, commit message should be short (less than 100 chars), clean and meaningful. Only response the message.`
+	}
+
+	messages = []*Message{
+		{
+			Role:    "system",
+			Content: systemPrompt,
+		},
 	}
 
 	client := NewGptClient(apiKey)
@@ -68,7 +75,7 @@ func main() {
 
 	messages = append(messages, &Message{
 		Role:    "user",
-		Content: "Write commit message for this git diff output: \n\n" + diff,
+		Content: "Write commit message for the following git diff: \n\n```" + diff + "\n\n```",
 	})
 
 	for {

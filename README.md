@@ -14,7 +14,17 @@ AI-Commit is a command line tool that uses OpenAI's language generation capabili
 
 ## Prerequisites
 
-To use AI-Commit, you need to obtain an API key from OpenAI and set it as the value of the OPENAI_API_KEY environment variable.
+To use AI-Commit, you need to obtain an API key from OpenAI and set it as the value of the `OPENAI_API_KEY` environment variable.
+
+```
+export OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+Sometime, the ChatGPT's response is not good (too long, too short, not meaningful). In that case, you can try custom the system prompt by set the `AI_COMMIT_SYSTEM_PROMPT` environment variable:
+
+```
+export AI_COMMIT_SYSTEM_PROMPT="You are a GitCommitGPT-4, You will help user to write commit message, commit message should be short (less than 100 chars), clean and meaningful. Only response the message."
+```
 
 Note: Using AI-Commit will result in charges from OpenAI for API usage, so be sure to understand their pricing model before use.
 
