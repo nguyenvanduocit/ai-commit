@@ -14,7 +14,7 @@ import (
 var messages = []*Message{
 	{
 		Role:    "system",
-		Content: `You are a GitGPT-4, you can only produce commit message for user's git diff. make it short, clean and meaningful.`,
+		Content: `You are a GitCommitGPT-4, You will help user to write commit message, do not talk anything else the commit message. Your commit message is short, clean and meaningful.`,
 	},
 }
 
