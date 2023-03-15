@@ -19,7 +19,6 @@ var messages = []*Message{
 }
 
 func main() {
-
 	// prepare the arguments
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
@@ -32,23 +31,34 @@ func main() {
 	// prepare the diff
 	diff, err := getDiff()
 	if err != nil {
-		explain, err := explainError(context.Background(), client, err)
-		if err != nil {
-			printError(err.Error())
+		if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
+			printError(explain)
 			os.Exit(1)
 		}
-		printError(explain)
+
+		printError(err.Error())
 		os.Exit(1)
 	}
 
 	if diff == "" {
-		if isDirty() {
-			fmt.Println("Please stage your changes and try again")
-		} else {
+		if !isDirty() {
 			fmt.Println("Nothing to commit, working tree clean")
+			os.Exit(0)
 		}
 
-		os.Exit(0)
+		if shouldAutoStage := askForAutoStage(client); !shouldAutoStage {
+			os.Exit(0)
+		}
+
+		if err := gitAdd(); err != nil {
+			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
+				printError(explain)
+				os.Exit(1)
+			}
+
+			printError(err.Error())
+			os.Exit(1)
+		}
 	}
 
 	commitMessage := ""
@@ -64,12 +74,12 @@ func main() {
 		printNormal("Assistant: " + generateLoadingMessage())
 		commitMessage, err = client.ChatComplete(ctx, messages)
 		if err != nil {
-			explain, err := explainError(ctx, client, err)
-			if err != nil {
-				printError(err.Error())
+			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
+				printError(explain)
 				os.Exit(1)
 			}
-			printError(explain)
+
+			printError(err.Error())
 			os.Exit(1)
 		}
 
@@ -91,12 +101,12 @@ func main() {
 			reader := bufio.NewReader(os.Stdin)
 			userRequest, err = reader.ReadString('\n')
 			if err != nil {
-				explain, err := explainError(ctx, client, err)
-				if err != nil {
-					printError(err.Error())
+				if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
+					printError(explain)
 					os.Exit(1)
 				}
-				printError(explain)
+
+				printError(err.Error())
 				os.Exit(1)
 			}
 
@@ -145,6 +155,37 @@ func joinPrefix(prefix string, message string) string {
 	return prefix + ": " + message
 }
 
+func gitAdd() error {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	return executils.Run("git",
+		executils.WithDir(workingDir),
+		executils.WithArgs("add", "."),
+	)
+}
+
+func askForAutoStage(apiClient *GptClient) bool {
+	fmt.Println("Assistant: Your working tree is dirty, but the stage is empty, do you want me to stage the changes first?")
+	fmt.Print("You: ")
+	reader := bufio.NewReader(os.Stdin)
+	userRequest, err := reader.ReadString('\n')
+	if err != nil {
+		printError("failed to read user input: " + err.Error())
+		os.Exit(1)
+	}
+
+	userRequest = strings.TrimSpace(userRequest)
+
+	if userRequest == "" {
+		return askForAutoStage(apiClient)
+	}
+
+	return IsAgree(apiClient, userRequest)
+}
+
 func askForPrefix() string {
 	prefix := ""
 	var err error
@@ -169,7 +210,7 @@ func explainError(ctx context.Context, apiClient *GptClient, userError error) (s
 	response, err := apiClient.ChatComplete(ctx, []*Message{
 		{
 			Role:    "system",
-			Content: "You are a developer, explain the error to user: `" + userError.Error() + "`, only response the message:",
+			Content: "You are a developer, explain the error to user: `" + userError.Error() + "`.",
 		},
 	})
 	if err != nil {
@@ -200,11 +241,13 @@ func getDiff() (string, error) {
 	}
 
 	out := strings.Builder{}
-	executils.Run("git",
+	if err := executils.Run("git",
 		executils.WithDir(workingDir),
 		executils.WithArgs("diff", "--cached", "--unified=0"),
 		executils.WithStdOut(&out),
-	)
+	); err != nil {
+		return "", err
+	}
 
 	return strings.TrimSpace(out.String()), nil
 }
@@ -235,11 +278,23 @@ var agreeWords = []string{
 	"agree",
 }
 
+var disagreeWords = []string{
+	"no",
+	"n",
+	"disagree",
+}
+
 // IsAgree returns true if the user agrees with the commit message
 func IsAgree(c *GptClient, userResponse string) bool {
 	for _, word := range agreeWords {
 		if strings.HasPrefix(strings.ToLower(userResponse), word) {
 			return true
+		}
+	}
+
+	for _, word := range disagreeWords {
+		if strings.HasPrefix(strings.ToLower(userResponse), word) {
+			return false
 		}
 	}
 

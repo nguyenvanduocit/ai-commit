@@ -21,22 +21,6 @@ type ChatCompleteRequest struct {
 	Messages []*Message `json:"messages"`
 }
 
-type ChatCompleteChoice struct {
-	Index   int `json:"index"`
-	Message struct {
-		Role    string `json:"role"`
-		Content string `json:"content"`
-	} `json:"message"`
-	FinishReason string `json:"finish_reason"`
-}
-
-type ChatCompleteResponse struct {
-	Id      string               `json:"id"`
-	Object  string               `json:"object"`
-	Created int                  `json:"created"`
-	Choices []ChatCompleteChoice `json:"choices"`
-}
-
 type GptClient struct {
 	apiKey     string
 	httpClient *http.Client
@@ -69,7 +53,7 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+c.apiKey)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -91,21 +75,11 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 		return "", errors.New("failed to get response from OpenAI API: " + errorMessage)
 	}
 
-	var response ChatCompleteResponse
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return "", err
-	}
+	answer := gjson.GetBytes(body, "choices.0.message.content").String()
+	answer = strings.TrimSpace(answer)
+	answer = strings.Trim(answer, `"`)
 
-	if len(response.Choices) == 0 {
-		return "", errors.New("no choices returned from OpenAI API")
-	}
-
-	firstChoice := response.Choices[0].Message.Content
-	firstChoice = strings.TrimSpace(firstChoice)
-	firstChoice = strings.Trim(firstChoice, `"`)
-
-	return firstChoice, nil
+	return answer, nil
 
 }
 
