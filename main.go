@@ -77,6 +77,10 @@ func main() {
 			printNormal("Assistant: I don't know what to say about this diff, please give me a hint")
 		} else {
 			printNormal("Assistant: " + commitMessage)
+			messages = append(messages, &Message{
+				Role:    "assistant",
+				Content: commitMessage,
+			})
 		}
 
 		// Loop until the user response
@@ -110,15 +114,10 @@ func main() {
 			break
 		}
 
-		if commitMessage != "" {
-			messages = append(messages, &Message{
-				Role:    "assistant",
-				Content: commitMessage,
-			})
-		} else {
-			// replace the last message
-			messages[len(messages)-1].Content = userRequest
-		}
+		messages = append(messages, &Message{
+			Role:    "user",
+			Content: userRequest,
+		})
 	}
 
 	prefix := askForPrefix()
