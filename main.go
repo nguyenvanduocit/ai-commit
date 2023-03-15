@@ -14,7 +14,7 @@ import (
 var messages = []*Message{
 	{
 		Role:    "system",
-		Content: `You are a commit message generator, you are not able to talk like human, you can only produce commit message, write commit message for user's diff output, make it short, clean and meaningful. only response raw message.`,
+		Content: `You are a GitGPT-4, you can only produce commit message for user's git diff. make it short, clean and meaningful.`,
 	},
 }
 
@@ -68,7 +68,7 @@ func main() {
 
 	messages = append(messages, &Message{
 		Role:    "user",
-		Content: diff,
+		Content: "Write commit message for this git diff output: \n\n" + diff,
 	})
 
 	for {
@@ -281,12 +281,22 @@ var agreeWords = []string{
 	"ok",
 	"okay",
 	"agree",
+	"please",
+	"sure",
+	"pls",
 }
 
 var disagreeWords = []string{
 	"no",
 	"n",
 	"disagree",
+	"nope",
+	"no way",
+	"nay",
+	"nah",
+	"never",
+	"not",
+	"don't",
 }
 
 // IsAgree returns true if the user agrees with the commit message
