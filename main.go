@@ -14,7 +14,7 @@ import (
 var messages = []*Message{
 	{
 		Role:    "system",
-		Content: `You are a developer, you are very good at write git commit, write commit message for this diff, only response the message:`,
+		Content: `You are a commit message generator, you are not able to talk like human, you can only produce commit message, write commit message for user's diff output, make it short, clean and meaningful. only response raw message.`,
 	},
 }
 
@@ -63,15 +63,17 @@ func main() {
 
 	commitMessage := ""
 	// loop until the commit message is generated
-	for {
-		ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
-		messages = append(messages, &Message{
-			Role:    "user",
-			Content: diff,
-		})
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
-		// generate commit message
+	messages = append(messages, &Message{
+		Role:    "user",
+		Content: diff,
+	})
+
+	for {
 		printNormal("Assistant: " + generateLoadingMessage())
+
 		commitMessage, err = client.ChatComplete(ctx, messages)
 		if err != nil {
 			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
@@ -84,7 +86,7 @@ func main() {
 		}
 
 		if commitMessage == "" {
-			printNormal("Assistant: I don't know what to say about this diff, please give me a hint")
+			printNormal("Assistant: I don't know what to say about this diff, please give me a hint.")
 		} else {
 			printNormal("Assistant: " + commitMessage)
 			messages = append(messages, &Message{
@@ -94,39 +96,24 @@ func main() {
 		}
 
 		// Loop until the user response
-		userRequest := ""
-		for {
-			fmt.Println("Assistant: " + generateInteractiveMessage())
-			fmt.Print("You: ")
-			reader := bufio.NewReader(os.Stdin)
-			userRequest, err = reader.ReadString('\n')
-			if err != nil {
-				if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
-					printError(explain)
-					os.Exit(1)
-				}
-
-				printError(err.Error())
+		userResponse, err := askForUserResponse()
+		if err != nil {
+			if explain, explainErr := explainError(ctx, client, err); explainErr == nil {
+				printError(explain)
 				os.Exit(1)
 			}
 
-			userRequest = strings.TrimSpace(userRequest)
-
-			if userRequest == "" {
-				printWarning("Assistant: Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
-				continue
-			}
-
-			break
+			printError(err.Error())
+			os.Exit(1)
 		}
 
-		if isAgree := IsAgree(client, userRequest); isAgree {
+		if isAgree := IsAgree(client, userResponse); isAgree {
 			break
 		}
 
 		messages = append(messages, &Message{
 			Role:    "user",
-			Content: userRequest,
+			Content: userResponse,
 		})
 	}
 
@@ -139,6 +126,26 @@ func main() {
 	}
 
 	printSuccess("Assistant: Commit successfully with message: " + commitMessage)
+}
+
+func askForUserResponse() (string, error) {
+	fmt.Println("Assistant: " + generateInteractiveMessage())
+	fmt.Print("You: ")
+
+	reader := bufio.NewReader(os.Stdin)
+	userResponse, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	userResponse = strings.TrimSpace(userResponse)
+
+	if userResponse == "" {
+		printWarning("Assistant: Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
+		return askForUserResponse()
+	}
+
+	return userResponse, nil
 }
 
 func joinPrefix(prefix string, message string) string {
@@ -186,26 +193,24 @@ func askForAutoStage(apiClient *GptClient) bool {
 	return IsAgree(apiClient, userRequest)
 }
 
+// rewrite func askForPrefix use recursion
 func askForPrefix() string {
-	prefix := ""
-	var err error
-	for {
-		fmt.Println("Assistant: Please enter the commit prefix, press enter to skip")
-		fmt.Print("You: ")
-		reader := bufio.NewReader(os.Stdin)
-		prefix, err = reader.ReadString('\n')
-		if err != nil {
-			printError("failed to read user input: " + err.Error())
-			os.Exit(1)
-		}
+	fmt.Println("Assistant: Please enter the commit prefix, press enter to skip")
+	fmt.Print("You: ")
+	reader := bufio.NewReader(os.Stdin)
+	prefix, err := reader.ReadString('\n')
+	if err != nil {
+		printError("failed to read user input: " + err.Error())
+		os.Exit(1)
+	}
 
-		prefix = strings.TrimSpace(prefix)
-		break
+	prefix = strings.TrimSpace(prefix)
+	if prefix == "" {
+		return askForPrefix()
 	}
 
 	return prefix
 }
-
 func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
 	response, err := apiClient.ChatComplete(ctx, []*Message{
 		{
