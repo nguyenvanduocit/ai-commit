@@ -23,15 +23,16 @@ type ChatCompleteRequest struct {
 
 type GptClient struct {
 	apiKey     string
+	model      string
 	httpClient *http.Client
 }
 
-const chatModel = "gpt-3.5-turbo"
 const chatEndpoint = "https://api.openai.com/v1/chat/completions"
 
-func NewGptClient(apiKey string) *GptClient {
+func NewGptClient(apiKey string, model string) *GptClient {
 	return &GptClient{
 		apiKey:     apiKey,
+		model:      model,
 		httpClient: http.DefaultClient,
 	}
 }
@@ -39,13 +40,13 @@ func NewGptClient(apiKey string) *GptClient {
 func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (string, error) {
 
 	request := &ChatCompleteRequest{
-		Model:    chatModel,
+		Model:    c.model,
 		Messages: messages,
 	}
 
 	payload, _ := json.Marshal(request)
 	payloadReader := bytes.NewReader(payload)
-	req, err := http.NewRequest("POST", chatEndpoint, payloadReader)
+	req, err := http.NewRequestWithContext(ctx, "POST", chatEndpoint, payloadReader)
 	if err != nil {
 		return "", err
 	}

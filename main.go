@@ -21,6 +21,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	model := os.Getenv("AI_COMMIT_MODEL")
+	if model == "" {
+		model = "gpt-3.5-turbo"
+	}
+
 	systemPrompt := os.Getenv("AI_COMMIT_SYSTEM_PROMPT")
 	if systemPrompt == "" {
 		systemPrompt = `You are a GitCommitGPT-4, You will help user to write commit message, commit message should be short (less than 100 chars), clean and meaningful. Only response the message.`
@@ -33,7 +38,7 @@ func main() {
 		},
 	}
 
-	client := NewGptClient(apiKey)
+	client := NewGptClient(apiKey, model)
 
 	// prepare the diff
 	diff, err := getDiff()

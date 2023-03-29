@@ -10,7 +10,7 @@
 
 > No more headaches with commit messages.
 
-AI-Commit is a command line tool that uses OpenAI's language generation capabilities to generate conventional commit messages for your Git repositories.
+AI-Commit is a command line tool that uses OpenAI's ChatGPT model to generate commit messages for your Git repositories. As a result, you can write meaningful commit messages without having to think about them.
 
 ## Prerequisites
 
