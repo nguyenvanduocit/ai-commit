@@ -166,7 +166,7 @@ func main() {
 		}
 
 		printSuccess("Assistant: Next tag is " + nextTag)
-		//errGuard(client, tag(nextTag))
+		errGuard(client, tag(nextTag))
 		printSuccess("Assistant: New tag " + nextTag + " created")
 	}
 
@@ -285,13 +285,35 @@ func askForAutoStage(apiClient *GptClient) (bool, error) {
 	return isAgree, nil
 }
 
+// git rev-list --tags --max-count=1
+func getLastTagCommitSha() (string, error) {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command("git", "rev-list", "--tags", "--max-count=1")
+	cmd.Dir = workingDir
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(out)), nil
+}
+
 func getCurrentTag() (string, error) {
 	workingDir, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
 
-	cmd := exec.Command("git", "describe", "--tags", "--abbrev=0")
+	commitHash, err := getLastTagCommitSha()
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command("git", "describe", "--tags", commitHash)
 	cmd.Dir = workingDir
 	out, err := cmd.Output()
 	if err != nil {
