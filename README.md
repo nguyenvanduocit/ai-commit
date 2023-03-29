@@ -72,6 +72,14 @@ When use `-t` flag, ai-commit will ba
 ai-commit -t
 ```
 
+### Auto push
+
+When use `-p` flag, ai-commit will auto push to remote.
+
+```bash
+ai-commit -p
+```
+
 ## Todo
 
 - [ ] Auto split changes in to multiple commits.

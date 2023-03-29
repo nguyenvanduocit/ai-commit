@@ -17,6 +17,7 @@ func main() {
 
 	autoCommit := false
 	autoTag := false
+	autoPush := false
 	// parse args
 	if len(os.Args) > 1 {
 		if os.Args[1] == "-h" || os.Args[1] == "--help" {
@@ -30,6 +31,10 @@ func main() {
 
 		if os.Args[1] == "-t" || os.Args[1] == "--tag" {
 			autoTag = true
+		}
+
+		if os.Args[1] == "-p" || os.Args[1] == "--push" {
+			autoPush = true
 		}
 	}
 
@@ -159,6 +164,13 @@ func main() {
 
 		printSuccess("Assistant: New tag " + nextTag + " created")
 	}
+
+	if autoPush {
+		if err := push(); err != nil {
+			errGuard(client, err)
+		}
+		printSuccess("Assistant: Pushed to remote")
+	}
 }
 
 func deletePreviousLine(numOfLine uint) {
@@ -211,6 +223,18 @@ func askForUserResponse() (string, string, error) {
 	}
 
 	return question, userResponse, nil
+}
+
+// push current branch and current tag
+func push() error {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Command("git", "push", "--follow-tags")
+	cmd.Dir = workingDir
+	return cmd.Run()
 }
 
 func gitAdd() error {
