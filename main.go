@@ -73,7 +73,6 @@ func main() {
 				os.Exit(0)
 			}
 		}
-
 		errGuard(client, gitAdd())
 	}
 
@@ -318,7 +317,6 @@ func IsAgree(c *GptClient, question, userResponse string) bool {
 var interactiveMessages = []string{
 	"Is this commit message ok?",
 	"Is it ok?",
-	"Is it good?",
 	"Any changes?",
 	"Hope you like it?",
 }
