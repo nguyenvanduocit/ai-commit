@@ -68,11 +68,16 @@ func main() {
 			os.Exit(0)
 		}
 
-		if !autoCommit {
-			if shouldAutoStage := askForAutoStage(client); !shouldAutoStage {
-				os.Exit(0)
-			}
+		if autoCommit {
+			errGuard(client, gitAdd())
+			break
 		}
+
+		shouldAutoStage := askForAutoStage(client)
+		if !shouldAutoStage {
+			os.Exit(0)
+		}
+
 		errGuard(client, gitAdd())
 	}
 
@@ -99,6 +104,10 @@ func main() {
 				Role:    "assistant",
 				Content: commitMessage,
 			})
+		}
+
+		if autoCommit {
+			break
 		}
 		// Loop until the user response
 		question, userResponse, err := askForUserResponse()
