@@ -129,6 +129,9 @@ func main() {
 		question, userResponse, err := askForUserResponse()
 		errGuard(client, err)
 
+		deletePreviousLine(2)
+		fmt.Println("You: " + userResponse)
+
 		isAgree, err := IsAgree(client, question, userResponse)
 		errGuard(client, err)
 
@@ -203,9 +206,6 @@ func readUserInput(message string) (string, error) {
 		return "", err
 	}
 	userResponse := strings.TrimSpace(userInput)
-
-	deletePreviousLine(2)
-	fmt.Println("You: " + userResponse)
 
 	return userResponse, nil
 }
