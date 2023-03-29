@@ -377,7 +377,7 @@ func IsAgree(c *GptClient, question, userResponse string) (bool, error) {
 	message := []*Message{
 		{
 			Role:    "system",
-			Content: "system: <generated commit message>\nassistant: " + question + "\nuser: " + userResponse + "\n\nDoes user want to change the system's message (yes/no):",
+			Content: "system: <generated commit message>\nassistant: " + question + "\nuser: " + userResponse + "\n\nDoes user mean yes or want to make change? (yes/change):",
 		},
 	}
 
