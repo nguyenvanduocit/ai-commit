@@ -304,9 +304,8 @@ func getCurrentTag() (string, error) {
 
 func getNextTag(apiClient *GptClient, lastCommitMessage string, currentTag string) (string, error) {
 
-	prompt := `Current tag: ` + currentTag + `
-Last conventional commit message:
-
+	prompt := `Last tag: ` + currentTag + `
+Conventional commit messages from the last tag to HEAD:
 ===
 ` + lastCommitMessage + `
 ===
