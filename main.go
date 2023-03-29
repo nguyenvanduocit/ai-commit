@@ -52,10 +52,17 @@ func main() {
 
 	client := NewGptClient(apiKey, model)
 
-	diff, err := getDiff()
-	errGuard(client, err)
+	diff := ""
+	var err error
 
-	if diff == "" {
+	for {
+		diff, err = getDiff()
+		errGuard(client, err)
+
+		if diff != "" {
+			break
+		}
+
 		if !isDirty() {
 			fmt.Println("Nothing to commit, working tree clean")
 			os.Exit(0)
@@ -67,8 +74,7 @@ func main() {
 			}
 		}
 
-		err := gitAdd()
-		errGuard(client, err)
+		errGuard(client, gitAdd())
 	}
 
 	commitMessage := ""
@@ -87,6 +93,7 @@ func main() {
 
 		if commitMessage == "" {
 			printNormal("Assistant: I don't know what to say about this diff, please give me a hint.")
+			continue
 		} else {
 			printNormal("Assistant: " + commitMessage)
 			messages = append(messages, &Message{
