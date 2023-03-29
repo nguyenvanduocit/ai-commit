@@ -18,22 +18,18 @@ func main() {
 	autoCommit := false
 	autoTag := false
 	autoPush := false
-	// parse args
-	if len(os.Args) > 1 {
-		if os.Args[1] == "-h" || os.Args[1] == "--help" {
+
+	// go parse flags
+	for _, arg := range os.Args {
+		switch arg {
+		case "-h", "--help":
 			showHelp()
 			os.Exit(0)
-		}
-
-		if os.Args[1] == "-a" || os.Args[1] == "--auto" {
+		case "-a", "--auto-commit":
 			autoCommit = true
-		}
-
-		if os.Args[1] == "-t" || os.Args[1] == "--tag" {
+		case "-t", "--auto-tag":
 			autoTag = true
-		}
-
-		if os.Args[1] == "-p" || os.Args[1] == "--push" {
+		case "-p", "--auto-push":
 			autoPush = true
 		}
 	}
@@ -158,7 +154,6 @@ func main() {
 		nextTag := "v0.0.0"
 		if currentTag != "" {
 			commits, err := listCommits(currentTag)
-			fmt.Println(commits)
 			errGuard(client, err)
 
 			nextTag, err = getNextTag(client, commits, currentTag)
