@@ -160,18 +160,12 @@ func main() {
 		}
 
 		printSuccess("Assistant: Next tag is " + nextTag)
-
-		if err := tag(nextTag); err != nil {
-			errGuard(client, err)
-		}
-
+		errGuard(client, tag(nextTag))
 		printSuccess("Assistant: New tag " + nextTag + " created")
 	}
 
 	if autoPush {
-		if err := push(); err != nil {
-			errGuard(client, err)
-		}
+		errGuard(client, push())
 		printSuccess("Assistant: Pushed to remote")
 	}
 }
