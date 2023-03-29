@@ -37,6 +37,17 @@ func NewGptClient(apiKey string, model string) *GptClient {
 	}
 }
 
+func handleAPIError(res *http.Response, body []byte) error {
+	if res.StatusCode != http.StatusOK {
+		errorMessage := gjson.GetBytes(body, "error.message").String()
+		if errorMessage == "" {
+			errorMessage = string(body)
+		}
+		return errors.New(errorMessage)
+	}
+	return nil
+}
+
 func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (string, error) {
 
 	request := &ChatCompleteRequest{
@@ -66,14 +77,8 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 		return "", err
 	}
 
-	// check for errors
-	if res.StatusCode != http.StatusOK {
-		errorMessage := gjson.GetBytes(body, "error.message").String()
-		if errorMessage == "" {
-			errorMessage = string(body)
-		}
-
-		return "", errors.New(errorMessage)
+	if err := handleAPIError(res, body); err != nil {
+		return "", err
 	}
 
 	answer := gjson.GetBytes(body, "choices.0.message.content").String()

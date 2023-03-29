@@ -73,7 +73,9 @@ func main() {
 			continue
 		}
 
-		shouldAutoStage := askForAutoStage(client)
+		shouldAutoStage, err := askForAutoStage(client)
+		errGuard(client, err)
+
 		if !shouldAutoStage {
 			os.Exit(0)
 		}
@@ -113,7 +115,10 @@ func main() {
 		question, userResponse, err := askForUserResponse()
 		errGuard(client, err)
 
-		if isAgree := IsAgree(client, question, userResponse); isAgree {
+		isAgree, err := IsAgree(client, question, userResponse)
+		errGuard(client, err)
+
+		if isAgree {
 			break
 		}
 
@@ -151,30 +156,35 @@ func showHelp() {
 	fmt.Println("\nFollow me on twitter: @duocdev")
 }
 
-func askForUserResponse() (string, string, error) {
-	message := generateInteractiveMessage()
-	fmt.Println("Assistant: " + message)
+func readUserInput(message string) (string, error) {
+	fmt.Print("Assistant: " + message)
 	fmt.Print("You: ")
-
 	reader := bufio.NewReader(os.Stdin)
-	userResponse, err := reader.ReadString('\n')
+	userInput, err := reader.ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+
+	deletePreviousLine(2)
+	userResponse := strings.TrimSpace(userInput)
+	fmt.Println("You: " + userResponse)
+
+	return userResponse, nil
+}
+
+func askForUserResponse() (string, string, error) {
+	question := generateInteractiveMessage()
+	userResponse, err := readUserInput(question)
 	if err != nil {
 		return "", "", err
 	}
-
-	userResponse = strings.TrimSpace(userResponse)
-
-	// remove the 2nd last line
-	deletePreviousLine(2)
-
-	fmt.Println("You: " + userResponse)
 
 	if userResponse == "" {
 		printWarning("Assistant: Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
 		return askForUserResponse()
 	}
 
-	return message, userResponse, nil
+	return question, userResponse, nil
 }
 
 func gitAdd() error {
@@ -189,24 +199,23 @@ func gitAdd() error {
 	)
 }
 
-func askForAutoStage(apiClient *GptClient) bool {
+func askForAutoStage(apiClient *GptClient) (bool, error) {
 	question := "Your working tree is dirty, do you want me to stage the changes first?"
-	fmt.Println("Assistant: " + question)
-	fmt.Print("You: ")
-	reader := bufio.NewReader(os.Stdin)
-	userRequest, err := reader.ReadString('\n')
+	userResponse, err := readUserInput(question)
 	if err != nil {
-		printError("failed to read user input: " + err.Error())
-		os.Exit(1)
+		return false, err
 	}
 
-	userRequest = strings.TrimSpace(userRequest)
-
-	if userRequest == "" {
+	if userResponse == "" {
 		return askForAutoStage(apiClient)
 	}
 
-	return IsAgree(apiClient, question, userRequest)
+	isAgree, err := IsAgree(apiClient, question, userResponse)
+	if err != nil {
+		return false, err
+	}
+
+	return isAgree, nil
 }
 
 func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
@@ -305,7 +314,7 @@ func getSuccessMessage() string {
 }
 
 // IsAgree returns true if the user agrees with the commit message
-func IsAgree(c *GptClient, question, userResponse string) bool {
+func IsAgree(c *GptClient, question, userResponse string) (bool, error) {
 	message := []*Message{
 		{
 			Role:    "system",
@@ -315,12 +324,12 @@ func IsAgree(c *GptClient, question, userResponse string) bool {
 
 	response, err := c.ChatComplete(context.Background(), message)
 	if err != nil {
-		return false
+		return false, err
 	}
 
 	lowerResponse := strings.ToLower(response)
 
-	return strings.HasPrefix(lowerResponse, "yes")
+	return strings.HasPrefix(lowerResponse, "yes"), nil
 }
 
 var interactiveMessages = []string{
