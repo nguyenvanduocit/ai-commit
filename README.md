@@ -66,7 +66,7 @@ ai-commit -a
 
 ### Auto tag
 
-When use `-t` flag, ai-commit will ba
+When use `-t` flag, ai-commit will auto create tag based on the commit messages between the last tag and the HEAD.
 
 ```bash
 ai-commit -t
