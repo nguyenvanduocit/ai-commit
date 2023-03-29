@@ -147,7 +147,10 @@ func main() {
 			currentTag = "v0.0.0"
 		}
 
-		nextTag, err := getNextTag(client, commitMessage, currentTag)
+		commits, err := listCommits(currentTag)
+		errGuard(client, err)
+
+		nextTag, err := getNextTag(client, commits, currentTag)
 		errGuard(client, err)
 
 		if err := tag(nextTag); err != nil {
@@ -220,6 +223,23 @@ func gitAdd() error {
 		executils.WithDir(workingDir),
 		executils.WithArgs("add", "."),
 	)
+}
+
+// git log v1.1.3..HEAD --oneline
+func listCommits(lastTag string) (string, error) {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command("git", "log", lastTag+"..HEAD", "--oneline")
+	cmd.Dir = workingDir
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(out)), nil
 }
 
 func askForAutoStage(apiClient *GptClient) (bool, error) {

@@ -64,15 +64,19 @@ When use `-a` flag, ai-commit will auto stage all changes then commit with gener
 ai-commit -a
 ```
 
-## Tip
+### Auto tag
 
-It's recommended to make multiple small commits, commit more often.
+When use `-t` flag, ai-commit will ba
+
+```bash
+ai-commit -t
+```
 
 ## Todo
 
 - [ ] Auto split changes in to multiple commits.
 - [x] Detect commit type.
-- [ ] Auto tags?
+- [x] Auto tags?
 
 ## License
 
