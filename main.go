@@ -53,15 +53,7 @@ func main() {
 	client := NewGptClient(apiKey, model)
 
 	diff, err := getDiff()
-	if err != nil {
-		if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
-			printError(explain)
-			os.Exit(1)
-		}
-
-		printError(err.Error())
-		os.Exit(1)
-	}
+	errGuard(client, err)
 
 	if diff == "" {
 		if !isDirty() {
@@ -75,15 +67,8 @@ func main() {
 			}
 		}
 
-		if err := gitAdd(); err != nil {
-			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
-				printError(explain)
-				os.Exit(1)
-			}
-
-			printError(err.Error())
-			os.Exit(1)
-		}
+		err := gitAdd()
+		errGuard(client, err)
 	}
 
 	commitMessage := ""
@@ -96,16 +81,9 @@ func main() {
 		printNormal("Assistant: " + generateLoadingMessage())
 
 		commitMessage, err = client.ChatComplete(context.Background(), messages)
-		if err != nil {
-			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
-				printError(explain)
-				os.Exit(1)
-			}
-			printError(err.Error())
-			os.Exit(1)
-		}
+		errGuard(client, err)
 
-		fmt.Print("\033[1A\033[K")
+		deletePreviousLine(1)
 
 		if commitMessage == "" {
 			printNormal("Assistant: I don't know what to say about this diff, please give me a hint.")
@@ -118,15 +96,7 @@ func main() {
 		}
 		// Loop until the user response
 		userResponse, err := askForUserResponse()
-		if err != nil {
-			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
-				printError(explain)
-				os.Exit(1)
-			}
-
-			printError(err.Error())
-			os.Exit(1)
-		}
+		errGuard(client, err)
 
 		if isAgree := IsAgree(client, userResponse); isAgree {
 			break
@@ -139,11 +109,16 @@ func main() {
 	}
 
 	if err := commit(commitMessage); err != nil {
-		printError("Assistant: failed to commit: " + err.Error())
-		os.Exit(1)
+		errGuard(client, err)
 	}
 
 	printSuccess("Assistant: " + getSuccessMessage())
+}
+
+func deletePreviousLine(numOfLine uint) {
+	for i := 0; i < int(numOfLine); i++ {
+		fmt.Print("\033[1A\033[K")
+	}
 }
 
 func showHelp() {
@@ -174,7 +149,10 @@ func askForUserResponse() (string, error) {
 	userResponse = strings.TrimSpace(userResponse)
 
 	// remove the 2nd last line
-	fmt.Print("\033[1A\033[K")
+	deletePreviousLine(2)
+
+	fmt.Println("You: " + userResponse)
+
 	if userResponse == "" {
 		printWarning("Assistant: Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
 		return askForUserResponse()
@@ -276,6 +254,20 @@ func isDirty() bool {
 	)
 
 	return out.Len() > 0
+}
+
+func errGuard(client *GptClient, err error) {
+	if err == nil {
+		return
+	}
+
+	if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
+		printError(explain)
+		os.Exit(1)
+	}
+
+	printError(err.Error())
+	os.Exit(1)
 }
 
 var agreeWords = []string{
