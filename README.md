@@ -26,6 +26,12 @@ Sometime, the ChatGPT's response is not good (too long, too short, not meaningfu
 export AI_COMMIT_SYSTEM_PROMPT="You are a GitCommitGPT-4, You will help user to write commit message, commit message should be short (less than 100 chars), clean and meaningful. Only response the message."
 ```
 
+By default, ai-commit use model `gpt-3.5-turbo`. You can change it by set the `AI_COMMIT_MODEL` environment variable:
+
+```
+export AI_COMMIT_MODEL="gpt-3.5-turbo"
+```
+
 Note: Using AI-Commit will result in charges from OpenAI for API usage, so be sure to understand their pricing model before use.
 
 ## Install

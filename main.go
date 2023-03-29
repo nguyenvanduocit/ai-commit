@@ -28,7 +28,7 @@ func main() {
 
 	systemPrompt := os.Getenv("AI_COMMIT_SYSTEM_PROMPT")
 	if systemPrompt == "" {
-		systemPrompt = `You are a GitCommitGPT-4, You will help user to write commit message, commit message should be short (less than 100 chars), clean and meaningful. Only response the message.`
+		systemPrompt = `You are a GitCommitGPT-4, You will help user to write conventional commit message, commit message should be short (less than 100 chars), clean and meaningful, be careful on commit type. Only response the message.`
 	}
 
 	messages = []*Message{
@@ -129,9 +129,6 @@ func main() {
 		})
 	}
 
-	prefix := askForPrefix()
-	commitMessage = joinPrefix(prefix, commitMessage)
-
 	if err := commit(commitMessage); err != nil {
 		printError("Assistant: failed to commit: " + err.Error())
 		os.Exit(1)
@@ -158,20 +155,6 @@ func askForUserResponse() (string, error) {
 	}
 
 	return userResponse, nil
-}
-
-func joinPrefix(prefix string, message string) string {
-
-	if prefix == "" {
-		return message
-	}
-
-	messageParts := strings.Split(message, ":")
-	if len(messageParts) == 2 {
-		message = strings.TrimSpace(messageParts[1])
-	}
-
-	return prefix + ": " + message
 }
 
 func gitAdd() error {
@@ -205,29 +188,11 @@ func askForAutoStage(apiClient *GptClient) bool {
 	return IsAgree(apiClient, userRequest)
 }
 
-// rewrite func askForPrefix use recursion
-func askForPrefix() string {
-	fmt.Println("Assistant: Please enter the commit prefix, press enter to skip")
-	fmt.Print("You: ")
-	reader := bufio.NewReader(os.Stdin)
-	prefix, err := reader.ReadString('\n')
-	if err != nil {
-		printError("failed to read user input: " + err.Error())
-		os.Exit(1)
-	}
-
-	prefix = strings.TrimSpace(prefix)
-	if prefix == "" {
-		return askForPrefix()
-	}
-
-	return prefix
-}
 func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
 	response, err := apiClient.ChatComplete(ctx, []*Message{
 		{
 			Role:    "system",
-			Content: "You are a developer, explain the error to user: `" + userError.Error() + "`.",
+			Content: "User run the cli tool ai-commit and got this error in their terminal, explain it: `" + userError.Error() + "`.",
 		},
 	})
 	if err != nil {

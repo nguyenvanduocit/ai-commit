@@ -73,7 +73,7 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 			errorMessage = string(body)
 		}
 
-		return "", errors.New("failed to get response from OpenAI API: " + errorMessage)
+		return "", errors.New(errorMessage)
 	}
 
 	answer := gjson.GetBytes(body, "choices.0.message.content").String()
