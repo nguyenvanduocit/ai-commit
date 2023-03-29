@@ -254,7 +254,7 @@ func getCurrentTag() (string, error) {
 
 func getNextTag(apiClient *GptClient, lastCommitMessage string, currentTag string) (string, error) {
 
-	prompt := `Current tag: 0.0.0
+	prompt := `Current tag: ` + currentTag + `
 Last conventional commit message:
 
 ===
@@ -377,7 +377,7 @@ func IsAgree(c *GptClient, question, userResponse string) (bool, error) {
 	message := []*Message{
 		{
 			Role:    "system",
-			Content: "system: <generated commit message?\nassistant: " + question + "\nuser: " + userResponse + "\n\nis user want to change the system's message (yes/no):",
+			Content: "system: <generated commit message>\nassistant: " + question + "\nuser: " + userResponse + "\n\nDoes user want to change the system's message (yes/no):",
 		},
 	}
 
