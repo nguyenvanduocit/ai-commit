@@ -7,6 +7,7 @@ import (
 	"github.com/nguyenvanduocit/executils"
 	"math/rand"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -15,6 +16,7 @@ var messages []*Message
 func main() {
 
 	autoCommit := false
+	autoTag := false
 	// parse args
 	if len(os.Args) > 1 {
 		if os.Args[1] == "-h" || os.Args[1] == "--help" {
@@ -24,6 +26,10 @@ func main() {
 
 		if os.Args[1] == "-a" || os.Args[1] == "--auto" {
 			autoCommit = true
+		}
+
+		if os.Args[1] == "-t" || os.Args[1] == "--tag" {
+			autoTag = true
 		}
 	}
 
@@ -133,6 +139,18 @@ func main() {
 	}
 
 	printSuccess("Assistant: " + getSuccessMessage())
+
+	if autoTag {
+		currentTag, err := getCurrentTag()
+		errGuard(client, err)
+		if currentTag == "" {
+			currentTag = "v0.0.0"
+		}
+
+		nextTag, err := getNextTag(client, commitMessage, currentTag)
+		errGuard(client, err)
+		printNormal("Assistant: " + nextTag)
+	}
 }
 
 func deletePreviousLine(numOfLine uint) {
@@ -157,16 +175,16 @@ func showHelp() {
 }
 
 func readUserInput(message string) (string, error) {
-	fmt.Print("Assistant: " + message)
+	fmt.Println("Assistant: " + message)
 	fmt.Print("You: ")
 	reader := bufio.NewReader(os.Stdin)
 	userInput, err := reader.ReadString('\n')
 	if err != nil {
 		return "", err
 	}
+	userResponse := strings.TrimSpace(userInput)
 
 	deletePreviousLine(2)
-	userResponse := strings.TrimSpace(userInput)
 	fmt.Println("You: " + userResponse)
 
 	return userResponse, nil
@@ -216,6 +234,47 @@ func askForAutoStage(apiClient *GptClient) (bool, error) {
 	}
 
 	return isAgree, nil
+}
+
+func getCurrentTag() (string, error) {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command("git", "describe", "--tags", "--abbrev=0")
+	cmd.Dir = workingDir
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(out)), nil
+}
+
+func getNextTag(apiClient *GptClient, lastCommitMessage string, currentTag string) (string, error) {
+
+	prompt := `Current tag: 0.0.0
+Last conventional commit message:
+
+===
+` + lastCommitMessage + `
+===
+
+What is the next tag?
+Be careful, think step by step, but only response the tag name.`
+
+	response, err := apiClient.ChatComplete(context.Background(), []*Message{
+		{
+			Role:    "system",
+			Content: prompt,
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return response, nil
 }
 
 func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
@@ -336,7 +395,6 @@ var interactiveMessages = []string{
 	"Is this commit message ok?",
 	"Is it ok?",
 	"Any changes?",
-	"Hope you like it?",
 }
 
 func generateInteractiveMessage() string {
