@@ -14,7 +14,20 @@ import (
 var messages []*Message
 
 func main() {
-	// prepare the arguments
+
+	autoCommit := false
+	// parse args
+	if len(os.Args) > 1 {
+		if os.Args[1] == "-h" || os.Args[1] == "--help" {
+			showHelp()
+			os.Exit(0)
+		}
+
+		if os.Args[1] == "-a" || os.Args[1] == "--auto" {
+			autoCommit = true
+		}
+	}
+
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
 		fmt.Println("OPENAI_API_KEY is not set")
@@ -39,11 +52,12 @@ func main() {
 	}
 
 	client := NewGptClient(apiKey, model)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
-	// prepare the diff
 	diff, err := getDiff()
 	if err != nil {
-		if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
+		if explain, explainErr := explainError(ctx, client, err); explainErr == nil {
 			printError(explain)
 			os.Exit(1)
 		}
@@ -58,12 +72,14 @@ func main() {
 			os.Exit(0)
 		}
 
-		if shouldAutoStage := askForAutoStage(client); !shouldAutoStage {
-			os.Exit(0)
+		if !autoCommit {
+			if shouldAutoStage := askForAutoStage(client); !shouldAutoStage {
+				os.Exit(0)
+			}
 		}
 
 		if err := gitAdd(); err != nil {
-			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
+			if explain, explainErr := explainError(ctx, client, err); explainErr == nil {
 				printError(explain)
 				os.Exit(1)
 			}
@@ -74,10 +90,6 @@ func main() {
 	}
 
 	commitMessage := ""
-	// loop until the commit message is generated
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
 	messages = append(messages, &Message{
 		Role:    "user",
 		Content: "Write commit message for the following git diff: \n\n```" + diff + "\n\n```",
@@ -86,16 +98,17 @@ func main() {
 	for {
 		printNormal("Assistant: " + generateLoadingMessage())
 
-		commitMessage, err = client.ChatComplete(ctx, messages)
+		commitMessage, err = client.ChatComplete(context.Background(), messages)
 		if err != nil {
 			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
 				printError(explain)
 				os.Exit(1)
 			}
-
 			printError(err.Error())
 			os.Exit(1)
 		}
+
+		fmt.Print("\033[1A\033[K")
 
 		if commitMessage == "" {
 			printNormal("Assistant: I don't know what to say about this diff, please give me a hint.")
@@ -106,11 +119,10 @@ func main() {
 				Content: commitMessage,
 			})
 		}
-
 		// Loop until the user response
 		userResponse, err := askForUserResponse()
 		if err != nil {
-			if explain, explainErr := explainError(ctx, client, err); explainErr == nil {
+			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
 				printError(explain)
 				os.Exit(1)
 			}
@@ -134,7 +146,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	printSuccess("Assistant: Commit successfully with message: " + commitMessage)
+	printSuccess("Assistant: Commit successfully")
+}
+
+func showHelp() {
+	fmt.Println("Usage: ai-commit [options]")
+
+	fmt.Println("\nOptions:")
+	fmt.Println("\t-h, --help\t Show help")
+	fmt.Println("\t-a, --auto\t Auto stage all changes and commit, the changes could be split into multiple commits")
+
+	fmt.Println("\nEnvironment variables:")
+	fmt.Println("\tOPENAI_API_KEY\t OpenAI API key")
+	fmt.Println("\tAI_COMMIT_MODEL\t OpenAI model, default is gpt-3.5-turbo")
+	fmt.Println("\tAI_COMMIT_SYSTEM_PROMPT\t Default instruction for the assistant")
+
+	fmt.Println("\nFollow me on twitter: @duocdev")
 }
 
 func askForUserResponse() (string, error) {
