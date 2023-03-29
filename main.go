@@ -62,6 +62,9 @@ func main() {
 	}
 
 	client := NewGptClient(apiKey, model)
+	defer func(client *GptClient) {
+		printSuccess("Total token used: " + fmt.Sprint(client.totalToken))
+	}(client)
 
 	diff := ""
 	var err error

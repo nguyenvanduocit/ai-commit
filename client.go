@@ -25,12 +25,14 @@ type GptClient struct {
 	apiKey     string
 	model      string
 	httpClient *http.Client
+	totalToken uint64
 }
 
 const chatEndpoint = "https://api.openai.com/v1/chat/completions"
 
 func NewGptClient(apiKey string, model string) *GptClient {
 	return &GptClient{
+		totalToken: 0,
 		apiKey:     apiKey,
 		model:      model,
 		httpClient: http.DefaultClient,
@@ -80,6 +82,8 @@ func (c *GptClient) ChatComplete(ctx context.Context, messages []*Message) (stri
 	if err := handleAPIError(res, body); err != nil {
 		return "", err
 	}
+
+	c.totalToken += gjson.GetBytes(body, "usage.total_tokens").Uint()
 
 	answer := gjson.GetBytes(body, "choices.0.message.content").String()
 	answer = strings.TrimSpace(answer)
