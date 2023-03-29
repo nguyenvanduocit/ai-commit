@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"os"
 	"strings"
-	"time"
 )
 
 var messages []*Message
@@ -41,7 +40,7 @@ func main() {
 
 	systemPrompt := os.Getenv("AI_COMMIT_SYSTEM_PROMPT")
 	if systemPrompt == "" {
-		systemPrompt = `You are a GitCommitGPT-4, You will help user to write conventional commit message, commit message should be short (less than 100 chars), clean and meaningful, be careful on commit type. Only response the message.`
+		systemPrompt = `You are a GitCommitGPT-4, You will help user to write conventional commit message, commit message should be short (less than 100 chars), clean and meaningful, be careful on commit type. Only response the message. If you can not write the message, response empty.`
 	}
 
 	messages = []*Message{
@@ -52,12 +51,10 @@ func main() {
 	}
 
 	client := NewGptClient(apiKey, model)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
 
 	diff, err := getDiff()
 	if err != nil {
-		if explain, explainErr := explainError(ctx, client, err); explainErr == nil {
+		if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
 			printError(explain)
 			os.Exit(1)
 		}
@@ -79,7 +76,7 @@ func main() {
 		}
 
 		if err := gitAdd(); err != nil {
-			if explain, explainErr := explainError(ctx, client, err); explainErr == nil {
+			if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
 				printError(explain)
 				os.Exit(1)
 			}
@@ -146,7 +143,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	printSuccess("Assistant: Commit successfully")
+	printSuccess("Assistant: " + getSuccessMessage())
 }
 
 func showHelp() {
@@ -176,6 +173,8 @@ func askForUserResponse() (string, error) {
 
 	userResponse = strings.TrimSpace(userResponse)
 
+	// remove the 2nd last line
+	fmt.Print("\033[1A\033[K")
 	if userResponse == "" {
 		printWarning("Assistant: Please enter your response, say yes if you want to use the message or press Ctrl+C to exit")
 		return askForUserResponse()
@@ -301,6 +300,23 @@ var disagreeWords = []string{
 	"never",
 	"not",
 	"don't",
+}
+
+var commitMessages = []string{
+	"🚀 Blast off! Your commit has been launched into cyberspace!",
+	"🎉 Woohoo! Your code change just joined the commit party!",
+	"🍾 Pop the bubbly! That commit is now part of the code fam!",
+	"🦄🌈 Your magical code change has been committed successfully!",
+	"🤖 Beep boop! My AI circuits confirm your commit is in!",
+	"🌟 Ta-da! Your commit has entered the code universe!",
+	"🍪 Here's a cookie for your awesome commit! You did it!",
+	"🏆 Achievement unlocked: Commit Master! Congrats!",
+	"🎯 Bullseye! Your commit hit its mark in the codebase!",
+	"🕺💃 Commit dance activated! Your change is in the mix!",
+}
+
+func getSuccessMessage() string {
+	return commitMessages[rand.Intn(len(commitMessages))]
 }
 
 // IsAgree returns true if the user agrees with the commit message
