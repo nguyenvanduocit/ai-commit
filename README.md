@@ -56,17 +56,23 @@ You can download prebuilt binaries for Linux, macOS, and Windows from the [relea
 4. Now you can chat with the AI to adjust the commit message. Press ctrl + c to stop.
 5. Finally, select the type of commit.
 
+### Auto commit, no interaction
+
+When use `-a` flag, ai-commit will auto stage all changes then commit with generated message.
+
+```bash
+ai-commit -a
+```
+
 ## Tip
 
 It's recommended to make multiple small commits, commit more often.
 
-Adjustment must be a list of adjectives to describe the commit message. Default adjustment is "short, simple, and clear"
-
 ## Todo
 
 - [ ] Auto split changes in to multiple commits.
-- [ ] Detect commit type.
-- [ ] Auto tags??
+- [x] Detect commit type.
+- [ ] Auto tags?
 
 ## License
 
