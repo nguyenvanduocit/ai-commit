@@ -148,15 +148,16 @@ func main() {
 	if autoTag {
 		currentTag, err := getCurrentTag()
 		errGuard(client, err)
-		if currentTag == "" {
-			currentTag = "v0.0.0"
+
+		nextTag := "v0.0.0"
+		if currentTag != "" {
+			commits, err := listCommits(currentTag)
+			fmt.Println(commits)
+			errGuard(client, err)
+
+			nextTag, err = getNextTag(client, commits, currentTag)
+			errGuard(client, err)
 		}
-
-		commits, err := listCommits(currentTag)
-		errGuard(client, err)
-
-		nextTag, err := getNextTag(client, commits, currentTag)
-		errGuard(client, err)
 
 		if err := tag(nextTag); err != nil {
 			errGuard(client, err)
