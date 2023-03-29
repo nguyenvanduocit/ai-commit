@@ -163,7 +163,7 @@ func main() {
 		}
 
 		printSuccess("Assistant: Next tag is " + nextTag)
-		errGuard(client, tag(nextTag))
+		//errGuard(client, tag(nextTag))
 		printSuccess("Assistant: New tag " + nextTag + " created")
 	}
 
