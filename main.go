@@ -159,6 +159,8 @@ func main() {
 			errGuard(client, err)
 		}
 
+		printSuccess("Assistant: Next tag is " + nextTag)
+
 		if err := tag(nextTag); err != nil {
 			errGuard(client, err)
 		}
