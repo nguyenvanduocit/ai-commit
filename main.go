@@ -149,7 +149,12 @@ func main() {
 
 		nextTag, err := getNextTag(client, commitMessage, currentTag)
 		errGuard(client, err)
-		printNormal("Assistant: " + nextTag)
+
+		if err := tag(nextTag); err != nil {
+			errGuard(client, err)
+		}
+
+		printSuccess("Assistant: New tag " + nextTag + " created")
 	}
 }
 
@@ -275,6 +280,18 @@ Be careful, think step by step, but only response the tag name.`
 	}
 
 	return response, nil
+}
+
+func tag(tagName string) error {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	return executils.Run("git",
+		executils.WithDir(workingDir),
+		executils.WithArgs("tag", tagName),
+	)
 }
 
 func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
