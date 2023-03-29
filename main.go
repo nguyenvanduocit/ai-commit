@@ -95,10 +95,10 @@ func main() {
 			})
 		}
 		// Loop until the user response
-		userResponse, err := askForUserResponse()
+		question, userResponse, err := askForUserResponse()
 		errGuard(client, err)
 
-		if isAgree := IsAgree(client, userResponse); isAgree {
+		if isAgree := IsAgree(client, question, userResponse); isAgree {
 			break
 		}
 
@@ -136,14 +136,15 @@ func showHelp() {
 	fmt.Println("\nFollow me on twitter: @duocdev")
 }
 
-func askForUserResponse() (string, error) {
-	fmt.Println("Assistant: " + generateInteractiveMessage())
+func askForUserResponse() (string, string, error) {
+	message := generateInteractiveMessage()
+	fmt.Println("Assistant: " + message)
 	fmt.Print("You: ")
 
 	reader := bufio.NewReader(os.Stdin)
 	userResponse, err := reader.ReadString('\n')
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	userResponse = strings.TrimSpace(userResponse)
@@ -158,7 +159,7 @@ func askForUserResponse() (string, error) {
 		return askForUserResponse()
 	}
 
-	return userResponse, nil
+	return message, userResponse, nil
 }
 
 func gitAdd() error {
@@ -174,7 +175,8 @@ func gitAdd() error {
 }
 
 func askForAutoStage(apiClient *GptClient) bool {
-	fmt.Println("Assistant: Your working tree is dirty, but the stage is empty, do you want me to stage the changes first?")
+	question := "Your working tree is dirty, do you want me to stage the changes first?"
+	fmt.Println("Assistant: " + question)
 	fmt.Print("You: ")
 	reader := bufio.NewReader(os.Stdin)
 	userRequest, err := reader.ReadString('\n')
@@ -189,7 +191,7 @@ func askForAutoStage(apiClient *GptClient) bool {
 		return askForAutoStage(apiClient)
 	}
 
-	return IsAgree(apiClient, userRequest)
+	return IsAgree(apiClient, question, userRequest)
 }
 
 func explainError(ctx context.Context, apiClient *GptClient, userError error) (string, error) {
@@ -312,7 +314,7 @@ func getSuccessMessage() string {
 }
 
 // IsAgree returns true if the user agrees with the commit message
-func IsAgree(c *GptClient, userResponse string) bool {
+func IsAgree(c *GptClient, question, userResponse string) bool {
 	for _, word := range agreeWords {
 		if strings.HasPrefix(strings.ToLower(userResponse), word) {
 			return true
@@ -327,8 +329,8 @@ func IsAgree(c *GptClient, userResponse string) bool {
 
 	message := []*Message{
 		{
-			Role:    "user",
-			Content: "only response with \"change request\" or \"agreement\"; the following message is a change request or agreement: " + userResponse,
+			Role:    "system",
+			Content: "User was ask the question: " + question + "\n User response: " + userResponse + "\n Does this user whant to \"change request\" or \"agreement\"?",
 		},
 	}
 
@@ -345,9 +347,9 @@ func IsAgree(c *GptClient, userResponse string) bool {
 var interactiveMessages = []string{
 	"Is this commit message ok?",
 	"Is it ok?",
-	"Changes?",
-	"Any changes?",
-	"Looks good?",
+	"Is it good?",
+	"Does the message describe the changes?",
+	"Type something if you want to change the message",
 }
 
 func generateInteractiveMessage() string {
