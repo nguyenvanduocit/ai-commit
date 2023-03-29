@@ -272,30 +272,6 @@ func errGuard(client *GptClient, err error) {
 	os.Exit(1)
 }
 
-var agreeWords = []string{
-	"yes",
-	"y",
-	"ok",
-	"okay",
-	"agree",
-	"please",
-	"sure",
-	"pls",
-}
-
-var disagreeWords = []string{
-	"no",
-	"n",
-	"disagree",
-	"nope",
-	"no way",
-	"nay",
-	"nah",
-	"never",
-	"not",
-	"don't",
-}
-
 var commitMessages = []string{
 	"🚀 Blast off! Your commit has been launched into cyberspace!",
 	"🎉 Woohoo! Your code change just joined the commit party!",
@@ -315,22 +291,10 @@ func getSuccessMessage() string {
 
 // IsAgree returns true if the user agrees with the commit message
 func IsAgree(c *GptClient, question, userResponse string) bool {
-	for _, word := range agreeWords {
-		if strings.HasPrefix(strings.ToLower(userResponse), word) {
-			return true
-		}
-	}
-
-	for _, word := range disagreeWords {
-		if strings.HasPrefix(strings.ToLower(userResponse), word) {
-			return false
-		}
-	}
-
 	message := []*Message{
 		{
 			Role:    "system",
-			Content: "User was ask the question: " + question + "\n User response: " + userResponse + "\n Does this user whant to \"change request\" or \"agreement\"?",
+			Content: "system: <generated commit message?\nassistant: " + question + "\nuser: " + userResponse + "\n\nis user want to change the system's message (yes/no):",
 		},
 	}
 
@@ -341,15 +305,15 @@ func IsAgree(c *GptClient, question, userResponse string) bool {
 
 	lowerResponse := strings.ToLower(response)
 
-	return strings.HasPrefix(lowerResponse, "agreement")
+	return strings.HasPrefix(lowerResponse, "yes")
 }
 
 var interactiveMessages = []string{
 	"Is this commit message ok?",
 	"Is it ok?",
 	"Is it good?",
-	"Does the message describe the changes?",
-	"Type something if you want to change the message",
+	"Any changes?",
+	"Hope you like it?",
 }
 
 func generateInteractiveMessage() string {
