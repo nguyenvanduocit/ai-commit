@@ -408,7 +408,7 @@ func errGuard(client *GptClient, err error) {
 	}
 
 	if explain, explainErr := explainError(context.Background(), client, err); explainErr == nil {
-		printError(explain)
+		printError(err.Error() + ": " + explain)
 		os.Exit(1)
 	}
 
