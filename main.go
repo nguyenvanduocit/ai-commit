@@ -70,7 +70,7 @@ func main() {
 
 		if autoCommit {
 			errGuard(client, gitAdd())
-			break
+			continue
 		}
 
 		shouldAutoStage := askForAutoStage(client)
